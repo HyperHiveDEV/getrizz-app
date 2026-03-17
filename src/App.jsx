@@ -1465,8 +1465,8 @@ export default function App() {
             setAuthStep("app");
             window.history.replaceState({}, document.title, window.location.pathname);
           const params2 = new URLSearchParams(hash.substring(1));
-          if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
-          }
+if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
+          if(params2.get('type')==='signup') { setAuthStep("confirmed"); return; }          }
         });
       return;
     }
@@ -1585,7 +1585,17 @@ export default function App() {
   );
   // ── Auth screen ──
 if(authStep==="reset") return <ResetPasswordModal onDone={()=>setAuthStep("auth")}/>;
-if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
+if(authStep==="confirmed") return(
+  <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,fontFamily:"'DM Sans',sans-serif"}}>
+    <div style={{fontFamily:"'Fraunces',serif",fontSize:30,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
+    <div style={{background:"rgba(109,209,109,.08)",border:"1px solid rgba(109,209,109,.3)",borderRadius:16,padding:"24px",textAlign:"center",maxWidth:320}}>
+      <div style={{fontSize:40,marginBottom:12}}>✅</div>
+      <div style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:900,color:"#F2E8E0",marginBottom:8}}>Email confirmé !</div>
+      <div style={{fontSize:13,color:"#7A6860",marginBottom:20}}>Ton compte est activé. Tu peux maintenant te connecter.</div>
+      <button onClick={()=>setAuthStep("auth")} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>🔥 Se connecter</button>
+    </div>
+  </div>
+);if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
   return(
     <div className="app">
       <div className="app-top">
