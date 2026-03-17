@@ -1238,6 +1238,65 @@ const sbGoogleOAuth = () => {
   window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
 };
 
+function ResetPasswordModal({ onDone }) {
+  const [pass, setPass] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState(null);
+  const isValid = pass.length >= 6 && pass === confirm;
+
+  const handleReset = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.substring(1));
+      const access_token = params.get('access_token');
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${access_token}`
+        },
+        body: JSON.stringify({ password: pass })
+      });
+      const data = await res.json();
+      if(data.error) throw new Error(data.error.message);
+      setDone(true);
+      setTimeout(()=>onDone(), 2000);
+    } catch(e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{background:"#0A0806",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"'DM Sans',sans-serif"}}>
+      <div style={{width:"100%",maxWidth:360,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.07)",borderRadius:20,padding:"28px 24px"}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:900,color:"#FF7A6E",marginBottom:6,textAlign:"center"}}>Nouveau mot de passe</div>
+        {done
+          ? <div style={{background:"rgba(109,209,109,.08)",border:"1px solid rgba(109,209,109,.3)",borderRadius:10,padding:"14px",fontSize:13,color:"#6DD16D",textAlign:"center"}}>✅ Mot de passe mis à jour !</div>
+          : <>
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16,marginTop:20}}>
+                <input type="password" placeholder="Nouveau mot de passe" value={pass} onChange={e=>setPass(e.target.value)}
+                  style={{width:"100%",background:"rgba(255,255,255,.04)",border:`2px solid ${pass.length>=6?"rgba(109,209,109,.35)":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"13px 16px",color:"#F2E8E0",fontFamily:"'DM Sans',sans-serif",fontSize:15,outline:"none"}}/>
+                <input type="password" placeholder="Confirmer le mot de passe" value={confirm} onChange={e=>setConfirm(e.target.value)}
+                  style={{width:"100%",background:"rgba(255,255,255,.04)",border:`2px solid ${confirm.length>=6&&confirm===pass?"rgba(109,209,109,.35)":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"13px 16px",color:"#F2E8E0",fontFamily:"'DM Sans',sans-serif",fontSize:15,outline:"none"}}/>
+              </div>
+              {error&&<div style={{background:"rgba(232,72,60,.1)",border:"1px solid rgba(232,72,60,.3)",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#FF7A6E",marginBottom:12}}>⚠️ {error}</div>}
+              <button onClick={handleReset} disabled={!isValid||loading}
+                style={{width:"100%",padding:"14px",background:isValid&&!loading?"linear-gradient(135deg,#E8483C,#FF7A6E)":"rgba(255,255,255,.05)",border:"none",borderRadius:12,color:isValid&&!loading?"#fff":"#7A6860",fontSize:15,fontWeight:700,cursor:isValid&&!loading?"pointer":"not-allowed",fontFamily:"'DM Sans',sans-serif"}}>
+                {loading?"Mise à jour…":"🔒 Mettre à jour"}
+              </button>
+            </>
+        }
+      </div>
+    </div>
+  );
+}
 function AuthModal({ onAuth, onSkip, isModal=false }) {
   const [mode,setMode]     = useState("login");
   const [email,setEmail]   = useState("");
@@ -1389,7 +1448,7 @@ export default function App() {
   useEffect(()=>{
   // Lire le token depuis le hash URL (retour OAuth Google)
   const hash = window.location.hash;
-  if(hash && hash.includes('access_token')) {
+  if(hash && hash.includes('access_token') || hash.includes('type=recovery')) {
     const params = new URLSearchParams(hash.substring(1));
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
@@ -1405,6 +1464,8 @@ export default function App() {
             setIsLoggedIn(true);
             setAuthStep("app");
             window.history.replaceState({}, document.title, window.location.pathname);
+          const params2 = new URLSearchParams(hash.substring(1));
+          if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
           }
         });
       return;
@@ -1523,8 +1584,8 @@ export default function App() {
     </div>
   );
   // ── Auth screen ──
-  if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
-
+if(authStep==="reset") return <ResetPasswordModal onDone={()=>setAuthStep("auth")}/>;
+if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
   return(
     <div className="app">
       <div className="app-top">
