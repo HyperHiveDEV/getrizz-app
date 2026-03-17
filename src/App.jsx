@@ -1344,7 +1344,15 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
 
         {/* Forgot password */}
         {mode==="login"&&<div style={{textAlign:"center",marginTop:12}}>
-          <span onClick={()=>{setMode("forgot");setError(null);}} style={{fontSize:12,color:"#7A6860",cursor:"pointer",textDecoration:"underline"}}>Mot de passe oublié ?</span>
+          <span onClick={()=>{setMode("forgot");setError(null);setSent(false);}} style={{fontSize:12,color:"#7A6860",cursor:"pointer",textDecoration:"underline"}}>Mot de passe oublié ?</span>
+        </div>}
+        {mode==="forgot"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {!sent?<><input type="email" placeholder="Ton email" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle(isValidEmail)}/>
+          <button onClick={async()=>{setLoading(true);await sbFetch("/auth/v1/recover",{method:"POST",body:JSON.stringify({email})});setLoading(false);setSent(true);}} disabled={!isValidEmail||loading} style={{width:"100%",padding:"14px",background:isValidEmail&&!loading?"linear-gradient(135deg,#E8483C,#FF7A6E)":"rgba(255,255,255,.05)",border:"none",borderRadius:12,color:isValidEmail&&!loading?"#fff":"#7A6860",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+            {loading?"Envoi…":"📧 Envoyer le lien"}
+          </button></>
+          :<div style={{background:"rgba(109,209,109,.08)",border:"1px solid rgba(109,209,109,.3)",borderRadius:10,padding:"14px",fontSize:13,color:"#6DD16D",textAlign:"center"}}>📧 <strong>Vérifie ton email !</strong><br/>Un lien de réinitialisation t'a été envoyé.</div>}
+          <span onClick={()=>{setMode("login");setError(null);}} style={{fontSize:12,color:"#7A6860",cursor:"pointer",textDecoration:"underline",textAlign:"center"}}>← Retour à la connexion</span>
         </div>}
 
         {/* Bonus inscription */}
