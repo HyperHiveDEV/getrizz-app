@@ -599,7 +599,10 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
       const data=await res.json();
       const r=JSON.parse((data.content?.[0]?.text||"").replace(/```json|```/g,"").trim());
       setResult(r);
-      if(!DEV_MODE && isLoggedIn && !isPremium) setCredits(c=>Math.max(0,c-1));
+      if(!DEV_MODE && isLoggedIn && !isPremium) {
+        setCredits(c=>Math.max(0,c-1));
+        if(supaUserId) supabase.from('profiles').update({credits: Math.max(0, credits-1)}).eq('user_id', supaUserId);
+      }
       setHistory(h=>[{id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()},...h].slice(0,20));
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
       // Show referral popup after first analysis ever
@@ -1525,7 +1528,7 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
   useEffect(()=>{ if(!DEV_MODE && userPrefix) ls.set(userPrefix+"_credits", String(credits)); },[credits, userPrefix]);
   useEffect(()=>{ if(userPrefix) ls.set(userPrefix+"_history", JSON.stringify(history)); },[history, userPrefix]);
 
-  const handleAuth = ({email, firstName:fn, userId=null, token=null}) => {
+  const handleAuth = async ({email, firstName:fn, userId=null, token=null}) => {
     const pfx = getUserPrefix(email);
     const savedHistory = ls.get(pfx+"_history");
     const savedCredits = ls.get(pfx+"_credits");
@@ -1537,7 +1540,14 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setShowAuthModal(false);
     ls.del("gr_guest_active");
     setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
-    setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+    // Charger les crédits depuis Supabase
+    if(userId && !DEV_MODE) {
+      const { data } = await supabase.from('profiles').select('credits').eq('user_id', userId).single();
+      if(data) setCredits(data.credits);
+      else setCredits(3);
+    } else {
+      setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+    }
     setAuthStep("app");
   };
   const handleSkip = () => {
