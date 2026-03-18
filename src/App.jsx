@@ -1322,8 +1322,12 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
       if(mode==="signup") {
         const res = await sbSignUp(email, pass, name||email.split("@")[0]);
         if(res.error) throw new Error(res.error.message);
-        // Email de confirmation envoyé — Supabase ne retourne pas de session immédiate
-        setSent(true);
+        if(res.access_token) {
+          const fn = name || email.split("@")[0];
+          onAuth({ email, firstName: fn, userId: res.user?.id, token: res.access_token });
+        } else {
+          setSent(true);
+        }
       } else {
         const res = await sbSignIn(email, pass);
         if(res.error) throw new Error(res.error.message);
