@@ -601,7 +601,7 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
       setResult(r);
       if(!DEV_MODE && isLoggedIn && !isPremium) {
         setCredits(c=>Math.max(0,c-1));
-        if(supaUserId) supabase.from('profiles').update({credits: Math.max(0, credits-1)}).eq('user_id', supaUserId);
+        if(supaUserId) await supabase.from('profiles').update({credits: Math.max(0, credits-1)}).eq('user_id', supaUserId);
       }
       setHistory(h=>[{id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()},...h].slice(0,20));
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
