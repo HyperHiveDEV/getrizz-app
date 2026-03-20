@@ -563,7 +563,7 @@ function ReferralCard({ setCredits, userEmail }) {
   );
 }
 
-function TabAnalyse({ firstName, credits, setCredits, history, setHistory, replayData, setReplayData, isLoggedIn, isPremium, onShowAuth, userEmail }) {
+function TabAnalyse({ firstName, credits, setCredits, history, setHistory, replayData, setReplayData, isLoggedIn, isPremium, onShowAuth, userEmail, supaUserId }) {
   const [imgPreview,setImgPreview]=useState(null);const [imgBase64,setImgBase64]=useState(null);
   const fileEl=useRef(null);const [showGuestLimitUpload,setShowGuestLimitUpload]=useState(false);const [app,setApp]=useState("Tinder");const [goal,setGoal]=useState("reply");
   const [loading,setLoading]=useState(false);const [result,setResult]=useState(null);const [error,setError]=useState(null);
@@ -601,7 +601,7 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
       setResult(r);
       if(!DEV_MODE && isLoggedIn && !isPremium) {
         setCredits(c=>Math.max(0,c-1));
-        if(supaUserId) await supabase.from('profiles').update({credits: Math.max(0, credits-1)}).eq('user_id', supaUserId);
+        if(supaUserId) { const newCredits = Math.max(0, credits-1); await supabase.from('profiles').update({credits: newCredits}).eq('user_id', supaUserId); }
       }
       setHistory(h=>[{id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()},...h].slice(0,20));
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
@@ -1638,7 +1638,7 @@ if(authStep==="confirmed") return(
         </div>
       )}
       <div className="app-content">
-        {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail}/>}
+        {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail} supaUserId={supaUserId}/>}
         {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal});setTab("analyse");}}/>}
         {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout}/>}
         {tab==="premium"&&<TabPremium/>}
