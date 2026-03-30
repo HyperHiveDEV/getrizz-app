@@ -1488,6 +1488,11 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setUserEmail(u.email||"");
     setSupaUserId(u.id||null);
     setIsLoggedIn(true);
+    // Charger les crédits depuis Supabase
+    if(u.id) {
+      supabase.from('profiles').select('credits').eq('user_id', u.id).single()
+        .then(({data}) => { if(data) setCredits(data.credits); });
+    }
     setAuthStep("app");
   } else {
     const guestActive = ls.get("gr_guest_active");
