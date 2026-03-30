@@ -599,12 +599,10 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
       const data=await res.json();
       const r=JSON.parse((data.content?.[0]?.text||"").replace(/```json|```/g,"").trim());
       setResult(r);
-      console.log('DEV_MODE:', DEV_MODE, 'isLoggedIn:', isLoggedIn, 'isPremium:', isPremium, 'supaUserId:', supaUserId);
-      console.log('DEV_MODE:', DEV_MODE, 'isLoggedIn:', isLoggedIn, 'isPremium:', isPremium, 'supaUserId:', supaUserId);
+
       if(!DEV_MODE && isLoggedIn && !isPremium) {
         setCredits(c=>Math.max(0,c-1));
-        console.log('supaUserId:', supaUserId, 'credits:', credits);
-if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = await supabase.from('profiles').update({credits: newCredits}).eq('user_id', supaUserId); console.log('Update result:', error); }
+if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = await supabase.from('profiles').update({credits: newCredits}).eq('user_id', supaUserId);  }
       }
       setHistory(h=>[{id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()},...h].slice(0,20));
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
