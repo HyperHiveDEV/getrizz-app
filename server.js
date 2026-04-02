@@ -50,6 +50,7 @@ app.post('/api/create-checkout', async (req, res) => {
     });
     res.json({ url: session.url });
   } catch(e) {
+    console.error('Stripe error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
