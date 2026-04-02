@@ -1175,7 +1175,7 @@ function TabPremium({ userEmail, supaUserId }) {
   const res = await fetch("https://getrizz-app-production.up.railway.app/api/create-checkout", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({userId: "", email: "", plan: annual?"annual":"monthly"})
+    body: JSON.stringify({userId: supaUserId, email: userEmail, plan: annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"}) annual?"annual":"monthly"})
   });
   const data = await res.json();
   if(data.url) window.location.href = data.url;
