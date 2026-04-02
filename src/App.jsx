@@ -1171,7 +1171,15 @@ function TabPremium() {
               <div key={i} className="prem-feat"><div className="prem-feat-ico">{f.ico}</div><span style={{flex:1}}>{f.txt}</span><span className="prem-feat-check">✓</span></div>
             ))}
           </div>
-          <button className="prem-cta" onClick={()=>setShowWait(true)}>🔥 Essayer Premium gratuitement</button>
+          <button className="prem-cta" onClick={async()=>{
+  const res = await fetch("https://getrizz-app-production.up.railway.app/api/create-checkout", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({userId: "", email: "", plan: annual?"annual":"monthly"})
+  });
+  const data = await res.json();
+  if(data.url) window.location.href = data.url;
+}}>🔥 Essayer Premium gratuitement</button>
           <div style={{fontSize:12,color:"#6DD16D",textAlign:"center",marginTop:8,fontWeight:600}}>✓ Aucun paiement aujourd'hui</div>
           <div className="prem-legal">7 jours gratuits · Annulable à tout moment · Sans engagement</div>
         </div>
