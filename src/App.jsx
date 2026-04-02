@@ -1149,7 +1149,7 @@ function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEm
   );
 }
 
-function TabPremium() {
+function TabPremium({ userEmail, supaUserId }) {
   const [annual,setAnnual]=useState(false);const [showWait,setShowWait]=useState(false);
   return(
     <>
@@ -1655,7 +1655,7 @@ if(authStep==="confirmed") return(
         {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail} supaUserId={supaUserId}/>}
         {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal});setTab("analyse");}}/>}
         {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout}/>}
-        {tab==="premium"&&<TabPremium/>}
+        {tab==="premium"&&<TabPremium userEmail={userEmail} supaUserId={supaUserId}/>}
       </div>
       <div className="app-nav">
         {NAV.map(n=>(
