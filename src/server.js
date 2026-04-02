@@ -1,8 +1,28 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+import Stripe from 'stripe';
 
+dotenv.config();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
-app.use(express.json({ limit: '50mb' }));
+
+app.use((req, res, next) => {
+  if(req.originalUrl === '/webhook') {
+    next();
+  } else {
+    express.json({ limit: '50mb' })(req, res, next);
+  }
+});
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', '*');
+  if(req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 
 app.post('/api/analyze', async (req, res) => {
   try {
@@ -10,7 +30,7 @@ app.post('/api/analyze', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify(req.body),
@@ -22,5 +42,28 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
-const server = app.listen(3001, '0.0.0.0', () => console.log('API server running on port 3001'));
+app.post('/api/create-checkout', async (req, res) => {
+  try {
+    const { userId, email, plan } = req.body;
+    const priceId = plan === 'annual' 
+      ? process.env.STRIPE_PRICE_ID_ANNUAL 
+      : process.env.STRIPE_PRICE_ID;
+    
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      customer_email: email,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `https://getrizz-app.vercel.app/?payment=success`,
+      cancel_url: `https://getrizz-app.vercel.app/?payment=cancelled`,
+      metadata: { userId }
+    });
+    res.json({ url: session.url });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+const server = app.listen(PORT, '0.0.0.0', () => console.log(`API server running on port ${PORT}`));
 server.timeout = 60000;
