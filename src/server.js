@@ -45,10 +45,7 @@ app.post('/api/analyze', async (req, res) => {
 app.post('/api/create-checkout', async (req, res) => {
   try {
     const { userId, email, plan } = req.body;
-    const priceId = plan === 'annual' 
-      ? process.env.STRIPE_PRICE_ID_ANNUAL 
-      : process.env.STRIPE_PRICE_ID;
-    
+    const priceId = process.env.STRIPE_PRICE_ID;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
@@ -60,6 +57,7 @@ app.post('/api/create-checkout', async (req, res) => {
     });
     res.json({ url: session.url });
   } catch(e) {
+    console.error('Stripe error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
@@ -70,35 +68,18 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) =
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch(e) {
+    console.error('Webhook error:', e.message);
     return res.status(400).json({error: e.message});
   }
   if(event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const userId = session.metadata.userId;
+    console.log('Payment completed for userId:', userId);
     if(userId) {
       const { createClient } = await import('@supabase/supabase-js');
       const supaAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-      await supaAdmin.from('profiles').update({is_premium: true}).eq('user_id', userId);
-    }
-  }
-  res.json({received: true});
-});
-
-app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch(e) {
-    return res.status(400).json({error: e.message});
-  }
-  if(event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const userId = session.metadata.userId;
-    if(userId) {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supaAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-      await supaAdmin.from('profiles').update({is_premium: true}).eq('user_id', userId);
+      const { error } = await supaAdmin.from('profiles').update({is_premium: true}).eq('user_id', userId);
+      console.log('Premium update:', error || 'success');
     }
   }
   res.json({received: true});
