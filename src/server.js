@@ -84,6 +84,26 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) =
   res.json({received: true});
 });
 
+app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch(e) {
+    return res.status(400).json({error: e.message});
+  }
+  if(event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userId = session.metadata.userId;
+    if(userId) {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supaAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+      await supaAdmin.from('profiles').update({is_premium: true}).eq('user_id', userId);
+    }
+  }
+  res.json({received: true});
+});
+
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, '0.0.0.0', () => console.log(`API server running on port ${PORT}`));
 server.timeout = 60000;
