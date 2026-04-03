@@ -7,7 +7,14 @@ dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
-app.use(express.json({ limit: '50mb' }));
+
+app.use((req, res, next) => {
+  if(req.originalUrl === '/webhook') {
+    next();
+  } else {
+    express.json({ limit: '50mb' })(req, res, next);
+  }
+});
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -44,8 +51,8 @@ app.post('/api/create-checkout', async (req, res) => {
       mode: 'subscription',
       customer_email: email,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `https://getrizz-app.vercel.app/?payment=success`,
-      cancel_url: `https://getrizz-app.vercel.app/?payment=cancelled`,
+      success_url: 'https://getrizz-app.vercel.app/?payment=success',
+      cancel_url: 'https://getrizz-app.vercel.app/?payment=cancelled',
       metadata: { userId }
     });
     res.json({ url: session.url });
@@ -55,6 +62,29 @@ app.post('/api/create-checkout', async (req, res) => {
   }
 });
 
+app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch(e) {
+    console.error('Webhook error:', e.message);
+    return res.status(400).json({error: e.message});
+  }
+  if(event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const userId = session.metadata.userId;
+    console.log('Payment completed for userId:', userId);
+    if(userId) {
+      const { createClient } = await import('@supabase/supabase-js');
+      const supaAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+      const { error } = await supaAdmin.from('profiles').update({is_premium: true}).eq('user_id', userId);
+      console.log('Premium update:', error || 'success');
+    }
+  }
+  res.json({received: true});
+});
+
 const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, '0.0.0.0', () => console.log(`API server running on port ${PORT}`));
+const server = app.listen(PORT, '0.0.0.0', () => console.log('API server running on port ' + PORT));
 server.timeout = 60000;
