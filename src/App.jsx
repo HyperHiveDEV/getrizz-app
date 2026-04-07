@@ -1498,8 +1498,11 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setIsLoggedIn(true);
     // Charger les crédits depuis Supabase
     if(u.id) {
-      supabase.from('profiles').select('credits').eq('user_id', u.id).single()
-        .then(({data}) => { if(data) setCredits(data.credits); });
+      supabase.from('profiles').select('credits, is_premium').eq('user_id', u.id).single()
+        .then(({data}) => { if(data) {
+        setCredits(data.is_premium ? 999 : data.credits);
+        setIsPremium(data.is_premium || false);
+      } else setCredits(3); });
     }
     setAuthStep("app");
   } else {
