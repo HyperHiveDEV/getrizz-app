@@ -1250,6 +1250,36 @@ const sbGoogleOAuth = () => {
   window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
 };
 
+function LandingPage({ onStart, onSkip }) {
+  return (
+    <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",flexDirection:"column",fontFamily:"'DM Sans',sans-serif",maxWidth:480,margin:"0 auto"}}>
+      <div style={{padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
+        <button onClick={onStart} style={{background:"transparent",border:"1px solid rgba(255,255,255,.15)",borderRadius:20,padding:"6px 16px",color:"#F2E8E0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Connexion</button>
+      </div>
+      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center"}}>
+        <div style={{fontSize:56,marginBottom:16}}>🔥</div>
+        <div style={{fontFamily:"'Fraunces',serif",fontSize:36,fontWeight:900,color:"#F2E8E0",lineHeight:1.1,marginBottom:12}}>L'IA qui écrit<br/>tes réponses<br/><span style={{color:"#FF7A6E",fontStyle:"italic"}}>dating</span></div>
+        <div style={{fontSize:15,color:"#7A6860",lineHeight:1.7,marginBottom:32,maxWidth:320}}>Upload un screenshot de ta conversation. Reçois 3 réponses parfaites en 30 secondes.</div>
+        <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340,marginBottom:40}}>
+          {[{ico:"📊",txt:"Score d'intérêt + Rizz Score"},{ico:"💬",txt:"3 réponses personnalisées : Chill, Bold, Cut"},{ico:"🎯",txt:"Probabilité d'obtenir un date"},{ico:"🔥",txt:"Tinder, Bumble, Hinge, Instagram..."}].map(({ico,txt})=>(
+            <div key={txt} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:12,padding:"12px 16px",textAlign:"left"}}>
+              <span style={{fontSize:20,flexShrink:0}}>{ico}</span>
+              <span style={{fontSize:13,color:"rgba(242,232,224,.8)",fontWeight:500}}>{txt}</span>
+            </div>
+          ))}
+        </div>
+        <button onClick={onStart} style={{width:"100%",maxWidth:340,padding:"18px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:16,color:"#fff",fontSize:17,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 6px 30px rgba(232,72,60,.35)",marginBottom:14}}>🚀 Essayer gratuitement</button>
+        <div style={{fontSize:12,color:"#4A3830",marginBottom:8}}>3 analyses offertes · Sans carte bancaire</div>
+        <button onClick={onSkip} style={{background:"transparent",border:"none",color:"#4A3830",fontSize:12,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",textDecoration:"underline"}}>Continuer sans compte →</button>
+      </div>
+      <div style={{padding:"16px 24px 32px",textAlign:"center"}}>
+        <div style={{fontSize:12,color:"#4A3830",fontFamily:"'Space Mono',monospace"}}>+1200 analyses générées aujourd'hui 🔥</div>
+      </div>
+    </div>
+  );
+}
+
 function ResetPasswordModal({ onDone }) {
   const [pass, setPass] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -1508,7 +1538,7 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
   } else {
     const guestActive = ls.get("gr_guest_active");
     if(guestActive) setAuthStep("app");
-    else setAuthStep("auth");
+    else setAuthStep("landing");
   }
 },[]);
   // ── Per-user storage prefix (unique guest session vs account) ──
@@ -1626,7 +1656,8 @@ if(authStep==="confirmed") return(
       <button onClick={()=>setAuthStep("auth")} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>🔥 Se connecter</button>
     </div>
   </div>
-);if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
+);if(authStep==="landing") return <LandingPage onStart={()=>setAuthStep("auth")} onSkip={handleSkip}/>;
+if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
   return(
     <div className="app">
       <div className="app-top">
