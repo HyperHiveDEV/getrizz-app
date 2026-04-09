@@ -1631,7 +1631,15 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setIsLoggedIn(true);
     setShowAuthModal(false);
     ls.del("gr_guest_active");
-    setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
+    if(userId) {
+      supabase.from('analyses').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(20)
+        .then(({data}) => {
+          if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)})));
+          else setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
+        });
+    } else {
+      setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
+    }
     // Charger les crédits depuis Supabase
     if(userId && !DEV_MODE) {
       const { data } = await supabase.from('profiles').select('credits').eq('user_id', userId).single();
