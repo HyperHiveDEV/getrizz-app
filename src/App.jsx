@@ -1524,9 +1524,15 @@ export default function App() {
   const [supaUserId,setSupaUserId]=useState(null);
   const [tab,setTab]=useState("analyse");
 
-  // ── Restore Supabase session on mount ──
+  // ──  ──
   useEffect(()=>{
   // Lire le token depuis le hash URL (retour OAuth Google)
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('payment') === 'success') {
+    setAuthStep("payment_success");
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return;
+  }
   const hash = window.location.hash;
   if(hash && hash.includes('access_token') || hash.includes('type=recovery')) {
     const params = new URLSearchParams(hash.substring(1));
@@ -1680,6 +1686,27 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
   );
   // ── Auth screen ──
 if(authStep==="reset") return <ResetPasswordModal onDone={()=>setAuthStep("auth")}/>;
+if(authStep==="payment_success") return(
+  <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,fontFamily:"'DM Sans',sans-serif",padding:"24px"}}>
+    <div style={{fontFamily:"'Fraunces',serif",fontSize:30,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
+    <div style={{background:"linear-gradient(135deg,rgba(232,72,60,.15),rgba(255,122,110,.08))",border:"1px solid rgba(232,72,60,.3)",borderRadius:20,padding:"32px 24px",textAlign:"center",maxWidth:340}}>
+      <div style={{fontSize:52,marginBottom:16}}>👑</div>
+      <div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:900,color:"#F2E8E0",marginBottom:8}}>Bienvenue dans Premium !</div>
+      <div style={{fontSize:14,color:"#7A6860",lineHeight:1.6,marginBottom:24}}>Analyses illimitées, suggestions ultra-personnalisées. Tu es maintenant un Rizz Master. 🔥</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+        {[["⚡","Analyses illimitées"],["🎯","Suggestions ultra-personnalisées"],["📊","Score conversationnel avancé"],["🚀","Accès aux nouvelles fonctionnalités"]].map(([ico,txt])=>(
+          <div key={txt} style={{display:"flex",alignItems:"center",gap:10,fontSize:13,color:"rgba(242,232,224,.8)"}}>
+            <span style={{width:28,height:28,background:"rgba(232,72,60,.1)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{ico}</span>
+            {txt}
+          </div>
+        ))}
+      </div>
+      <button onClick={()=>setAuthStep("app")} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 20px rgba(232,72,60,.3)"}}>
+        🔥 Commencer à analyser
+      </button>
+    </div>
+  </div>
+);
 if(authStep==="confirmed") return(
   <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,fontFamily:"'DM Sans',sans-serif"}}>
     <div style={{fontFamily:"'Fraunces',serif",fontSize:30,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
