@@ -1252,6 +1252,10 @@ const sbGoogleOAuth = () => {
 
 function LandingPage({ onStart, onSkip }) {
   const [count, setCount] = useState(0);
+  const [appIndex, setAppIndex] = useState(0);
+  const [displayed, setDisplayed] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const apps = ["Tinder 🔥","Bumble 🐝","Hinge 💚","Instagram 📸","WhatsApp 💬"];
 
   useEffect(() => {
     let start = 0;
@@ -1265,6 +1269,22 @@ function LandingPage({ onStart, onSkip }) {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const app = apps[appIndex];
+    let timeout;
+    if(!deleting && displayed.length < app.length) {
+      timeout = setTimeout(() => setDisplayed(app.slice(0, displayed.length + 1)), 80);
+    } else if(!deleting && displayed.length === app.length) {
+      timeout = setTimeout(() => setDeleting(true), 1500);
+    } else if(deleting && displayed.length > 0) {
+      timeout = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 40);
+    } else if(deleting && displayed.length === 0) {
+      setDeleting(false);
+      setAppIndex((appIndex + 1) % apps.length);
+    }
+    return () => clearTimeout(timeout);
+  }, [displayed, deleting, appIndex]);
+
   return (
     <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",flexDirection:"column",fontFamily:"'DM Sans',sans-serif",maxWidth:480,margin:"0 auto"}}>
       <div style={{padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -1273,7 +1293,7 @@ function LandingPage({ onStart, onSkip }) {
       </div>
       <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center"}}>
         <div style={{fontSize:56,marginBottom:16}}>🔥</div>
-        <div style={{fontFamily:"'Fraunces',serif",fontSize:36,fontWeight:900,color:"#F2E8E0",lineHeight:1.1,marginBottom:12}}>L'IA qui écrit<br/>tes réponses<br/><span style={{color:"#FF7A6E",fontStyle:"italic"}}>dating</span></div>
+        <div style={{fontFamily:"'Fraunces',serif",fontSize:36,fontWeight:900,color:"#F2E8E0",lineHeight:1.1,marginBottom:12}}>L'IA qui écrit<br/>tes réponses<br/><span style={{color:"#FF7A6E",fontStyle:"italic"}}>{displayed}<span style={{borderRight:"2px solid #FF7A6E",marginLeft:2,animation:"tspin .7s steps(1) infinite"}}></span></span></div>
         <div style={{fontSize:15,color:"#7A6860",lineHeight:1.7,marginBottom:32,maxWidth:320}}>Upload un screenshot de ta conversation. Reçois 3 réponses parfaites en 30 secondes.</div>
         <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340,marginBottom:40}}>
           {[{ico:"📊",txt:"Score d'intérêt + Rizz Score"},{ico:"💬",txt:"3 réponses personnalisées : Chill, Bold, Cut"},{ico:"🎯",txt:"Probabilité d'obtenir un date"},{ico:"🔥",txt:"Tinder, Bumble, Hinge, Instagram..."}].map(({ico,txt})=>(
