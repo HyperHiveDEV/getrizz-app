@@ -1271,7 +1271,7 @@ function LandingPage({ onStart, onSkip }) {
         </div>
         <button onClick={onStart} style={{width:"100%",maxWidth:340,padding:"18px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:16,color:"#fff",fontSize:17,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 6px 30px rgba(232,72,60,.35)",marginBottom:14}}>🚀 Essayer gratuitement</button>
         <div style={{fontSize:12,color:"#4A3830",marginBottom:8}}>3 analyses offertes · Sans carte bancaire</div>
-        <button onClick={onSkip} style={{background:"transparent",border:"none",color:"#4A3830",fontSize:12,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",textDecoration:"underline"}}>Continuer sans compte →</button>
+        
       </div>
       <div style={{padding:"16px 24px 32px",textAlign:"center"}}>
         <div style={{fontSize:12,color:"#4A3830",fontFamily:"'Space Mono',monospace"}}>+1200 analyses générées aujourd'hui 🔥</div>
