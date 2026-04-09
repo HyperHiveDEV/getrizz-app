@@ -606,7 +606,10 @@ if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = awai
       }
       const newEntry = {id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()};
       setHistory(h=>[newEntry,...h].slice(0,20));
-      if(supaUserId) supabase.from('analyses').insert({user_id:supaUserId,app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||""});
+      if(supaUserId) {
+        const {error} = await supabase.from('analyses').insert({user_id:supaUserId,app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||""});
+        console.log('Analyses insert:', error || 'success');
+      }
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
       // Show referral popup after first analysis ever
       const isFirstAnalysis = history.length === 0;
