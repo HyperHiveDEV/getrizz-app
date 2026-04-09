@@ -1,16 +1,33 @@
-# React + Vite
+🔥 Get'Rizz
+The AI that writes your dating replies for you.
+Upload a screenshot. Get 3 perfect messages. Send. Win.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+💀 The Problem
+You matched with someone amazing.
+You've been staring at that conversation for 20 minutes.
+You don't know what to say.
+She stops responding.
+Sound familiar?
 
-Currently, two official plugins are available:
+⚡ The Solution
+Get'Rizz reads your conversation screenshots and instantly generates:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+📊 An interest score — How into you is she? (1-10)
+🔥 A Rizz Score — Your conversation's heat level
+💬 3 tailored replies — Chill, Bold, or Cut the bullsh*t
+🎯 Date probability — Your real chances of locking in a date
 
-## React Compiler
+30 seconds. No more overthinking.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+🎯 Who It's For
+If you...Get'Rizz helps you...😅 Overthink every replyGet 3 ready-to-send options instantly👻 Keep getting ghostedUnderstand why and fix it🔄 Want to relaunch a dead convoKnow exactly what to say📅 Want to suggest a dateGet the perfect timing & wording✉️ Struggle with openersLand the first message every time
 
-## Expanding the ESLint configuration
+📱 Works With Every App
+🔥 Tinder · 🐝 Bumble · 💚 Hinge · 📸 Instagram · 💬 WhatsApp · 💌 Any app
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+👑 Plans
+FreePremium3 analyses♾️ UnlimitedBasic scoreAdvanced score—Priority support
+Premium: €9/month · Cancel anytime
+
+Stop overthinking. Start winning.
+Made with ❤️ by HyperHive DEV
