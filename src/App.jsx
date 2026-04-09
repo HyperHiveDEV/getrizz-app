@@ -441,7 +441,7 @@ function GuestConversionPopup({ onClose, onShowAuth, title, body }) {
           <button onClick={()=>{onClose();onShowAuth();}} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 20px rgba(232,72,60,.35)"}}>
             🚀 Créer mon compte
           </button>
-          <div style={{textAlign:"center",fontSize:12,color:"#7A6860"}}>Déjà +1200 analyses générées aujourd'hui 🔥</div>
+          <div style={{textAlign:"center",fontSize:12,color:"#7A6860"}}>Déjà +{count} analyses générées aujourd'hui 🔥</div>
           <button onClick={()=>{onClose();onShowAuth();}} style={{width:"100%",padding:"13px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,color:"#F2E8E0",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
             Se connecter
           </button>
@@ -1251,6 +1251,20 @@ const sbGoogleOAuth = () => {
 };
 
 function LandingPage({ onStart, onSkip }) {
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    let start = 0;
+    const target = 1247;
+    const step = Math.ceil(target / 60);
+    const timer = setInterval(() => {
+      start += step;
+      if(start >= target) { setCount(target); clearInterval(timer); }
+      else setCount(start);
+    }, 20);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",flexDirection:"column",fontFamily:"'DM Sans',sans-serif",maxWidth:480,margin:"0 auto"}}>
       <div style={{padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -1274,7 +1288,7 @@ function LandingPage({ onStart, onSkip }) {
         
       </div>
       <div style={{padding:"16px 24px 32px",textAlign:"center"}}>
-        <div style={{fontSize:12,color:"#4A3830",fontFamily:"'Space Mono',monospace"}}>+1200 analyses générées aujourd'hui 🔥</div>
+        <div style={{fontSize:12,color:"#4A3830",fontFamily:"'Space Mono',monospace"}}>+{count} analyses générées aujourd'hui 🔥</div>
       </div>
     </div>
   );
