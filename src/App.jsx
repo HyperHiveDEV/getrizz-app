@@ -1251,9 +1251,9 @@ const sbGoogleOAuth = () => {
 };
 
 function LandingPage({ onStart, onSkip }) {
-  const [count, setCount] = React.useState(0);
+  const [count, setCount] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let start = 0;
     const target = 1247;
     const step = Math.ceil(target / 60);
