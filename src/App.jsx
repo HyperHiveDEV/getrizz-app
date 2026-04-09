@@ -604,7 +604,9 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
         setCredits(c=>Math.max(0,c-1));
 if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = await supabase.from('profiles').update({credits: newCredits}).eq('user_id', supaUserId);  }
       }
-      setHistory(h=>[{id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()},...h].slice(0,20));
+      const newEntry = {id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()};
+      setHistory(h=>[newEntry,...h].slice(0,20));
+      if(supaUserId) supabase.from('analyses').insert({user_id:supaUserId,app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||""});
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
       // Show referral popup after first analysis ever
       const isFirstAnalysis = history.length === 0;
