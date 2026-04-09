@@ -1,4 +1,5 @@
 🔥 Get'Rizz
+
 The AI that writes your dating replies for you.
 Upload a screenshot. Get 3 perfect messages. Send. Win.
 
@@ -30,4 +31,5 @@ FreePremium3 analyses♾️ UnlimitedBasic scoreAdvanced score—Priority suppor
 Premium: €9/month · Cancel anytime
 
 Stop overthinking. Start winning.
+
 Made with ❤️ by HyperHive DEV
