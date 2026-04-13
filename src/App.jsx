@@ -824,7 +824,7 @@ function TabHistorique({ history, onReplay, supaUserId, setHistory }) {
                   {/* Replay button */}
                   <div style={{padding:"0 14px 12px"}}>
                     <button onClick={()=>onReplay(h)} style={{width:"100%",padding:"9px",background:"rgba(232,72,60,.08)",border:"1px solid rgba(232,72,60,.2)",borderRadius:9,color:"#FF7A6E",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:7,transition:"all .15s"}}>
-                      🔍 Réouvrir l'analyse
+                      🔍 Ré-analyser avec ces paramètres
                     </button>
                   </div>
                 </div>
