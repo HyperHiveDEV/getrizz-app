@@ -579,7 +579,11 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
     if(!replayData) return;
     setApp(replayData.app);
     setGoal(replayData.goal);
-    setResult(null);setImgPreview(null);setImgBase64(null);setError(null);
+    if(replayData.result) {
+      setResult(replayData.result);
+    } else {
+      setResult(null);setImgPreview(null);setImgBase64(null);setError(null);
+    }
     setToast(`⚡ App et objectif pré-remplis depuis ton historique !`);
     setTimeout(()=>setToast(null), 3500);
     setReplayData(null);
@@ -1770,7 +1774,7 @@ if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/
       )}
       <div className="app-content">
         {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail} supaUserId={supaUserId}/>}
-        {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal});setTab("analyse");}} supaUserId={supaUserId} setHistory={setHistory}/>}
+        {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal,result:h.result});setTab("analyse");}} supaUserId={supaUserId} setHistory={setHistory}/>}
         {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout}/>}
         {tab==="premium"&&<TabPremium userEmail={userEmail} supaUserId={supaUserId}/>}
       </div>
