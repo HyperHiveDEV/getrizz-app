@@ -749,7 +749,14 @@ if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = awai
   );
 }
 
-function TabHistorique({ history, onReplay }) {
+function TabHistorique({ history, onReplay, supaUserId, setHistory }) {
+  useEffect(() => {
+    if(supaUserId) {
+      supabase.from('analyses').select('*').eq('user_id', supaUserId).order('created_at', {ascending:false}).limit(20)
+        .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
+    }
+  }, [supaUserId]);
+
   const appEmoji = {Tinder:"🔥",Bumble:"🐝",Hinge:"💚",Instagram:"📸",WhatsApp:"💬",Autre:"💌"};
   const appColor = {Tinder:"#FE3C72",Bumble:"#FFC629",Hinge:"#0CDB95",Instagram:"#C13584",WhatsApp:"#25D366",Autre:"#E8483C"};
   const goalLabel = {reply:"Répondre",relaunch:"Relancer",date:"Proposer un RDV",opener:"Premier message"};
@@ -1763,7 +1770,7 @@ if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/
       )}
       <div className="app-content">
         {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail} supaUserId={supaUserId}/>}
-        {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal});setTab("analyse");}}/>}
+        {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal});setTab("analyse");}} supaUserId={supaUserId} setHistory={setHistory}/>}
         {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout}/>}
         {tab==="premium"&&<TabPremium userEmail={userEmail} supaUserId={supaUserId}/>}
       </div>
