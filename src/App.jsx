@@ -1578,6 +1578,8 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
         setCredits(data.is_premium ? 999 : data.credits);
         setIsPremium(data.is_premium || false);
       } else setCredits(3); });
+      supabase.from('analyses').select('*').eq('user_id', u.id).order('created_at', {ascending:false}).limit(20)
+        .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
     }
     setAuthStep("app");
   } else {
