@@ -51,8 +51,8 @@ app.post('/api/create-checkout', async (req, res) => {
       mode: 'subscription',
       customer_email: email,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `https://getrizz-app.vercel.app/?payment=success`,
-      cancel_url: `https://getrizz-app.vercel.app/?payment=cancelled`,
+      success_url: `https://getyourrizz.app/?payment=success`,
+      cancel_url: `https://getyourrizz.app/?payment=cancelled`,
       metadata: { userId }
     });
     res.json({ url: session.url });
