@@ -936,7 +936,7 @@ function NotifCenter({notifPrefs, savePrefs, setShowNotifCenter, onToggleMain}) 
   )
 }
 
-function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEmail, onShowAuth, onLogout }) {
+function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEmail, onShowAuth, onLogout, supaUserId }) {
   const [modal,setModal]=useState(null);const [privacy,setPrivacy]=useState(false);
   const [goal,setGoal]=useState("reply");const [app,setApp]=useState("Tinder");const [level,setLevel]=useState("beginner");
   const [showNotifCenter,setShowNotifCenter]=useState(false);
