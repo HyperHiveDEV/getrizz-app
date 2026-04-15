@@ -85,6 +85,19 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) =
   res.json({received: true});
 });
 
+app.post('/api/delete-account', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { createClient } = await import('@supabase/supabase-js');
+    const supaAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    await supaAdmin.auth.admin.deleteUser(userId);
+    res.json({ success: true });
+  } catch(e) {
+    console.error('Delete account error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, '0.0.0.0', () => console.log(`API server running on port ${PORT}`));
 server.timeout = 60000;
