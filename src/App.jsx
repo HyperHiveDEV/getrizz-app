@@ -383,7 +383,7 @@ function ModalRating({ onClose }) {
     </Modal>
   );
 }
-function PrivacyPage({ onBack, isLoggedIn }) {
+function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
   const [showDel,setShowDel]=useState(false);const [deleted,setDeleted]=useState(false);
   return (
     <div className="priv-page">
@@ -969,7 +969,7 @@ function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEm
   const [avatarAnim,setAvatarAnim]=useState(false);
   const handleAvatarUpload=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{const b64=ev.target.result;setAvatarUrl(b64);setAvatarAnim(true);setTimeout(()=>setAvatarAnim(false),2000);ls.set(avatarKey,b64);};reader.readAsDataURL(file);};
 
-  if(privacy) return <PrivacyPage onBack={()=>setPrivacy(false)} isLoggedIn={isLoggedIn}/>;
+  if(privacy) return <PrivacyPage onBack={()=>setPrivacy(false)} isLoggedIn={isLoggedIn} supaUserId={supaUserId}/>;
   return(
     <>
       <div className="tab-profil">
