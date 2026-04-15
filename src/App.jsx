@@ -394,7 +394,18 @@ function PrivacyPage({ onBack, isLoggedIn }) {
       <div className="priv-block"><div className="priv-block-title">🛡️ Protection des données</div><div className="priv-block-body">Tes conversations sont utilisées uniquement pour générer tes réponses.</div></div>
       {isLoggedIn&&<div className="priv-block priv-danger"><div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
         {!deleted&&!showDel&&<button className="priv-action danger" onClick={()=>setShowDel(true)}>🗑️ Supprimer</button>}
-        {showDel&&!deleted&&<div className="delete-confirm"><div className="delete-confirm-t">Tu es sûr ?</div><div className="delete-confirm-s">Action définitive.</div><div className="delete-confirm-btns"><button className="btn-cancel" onClick={()=>setShowDel(false)}>Annuler</button><button className="btn-delete" onClick={()=>{setShowDel(false);setDeleted(true);ls.del("gr_firstname");ls.del("gr_credits");ls.del("gr_history");}}>Supprimer</button></div></div>}
+        {showDel&&!deleted&&<div className="delete-confirm"><div className="delete-confirm-t">Tu es sûr ?</div><div className="delete-confirm-s">Action définitive.</div><div className="delete-confirm-btns"><button className="btn-cancel" onClick={()=>setShowDel(false)}>Annuler</button><button className="btn-delete" onClick={()=>{setShowDel(false);setDeleted(true);
+                ls.del("gr_firstname");ls.del("gr_credits");ls.del("gr_history");
+                const session = sbGetSession();
+                if(session?.access_token) {
+                  fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                    method: 'DELETE',
+                    headers: {
+                      'apikey': SUPABASE_KEY,
+                      'Authorization': `Bearer ${session.access_token}`
+                    }
+                  });
+                }}}>Supprimer</button></div></div>}
         {deleted&&<div style={{marginTop:10,fontSize:13,color:"#6DD16D",fontWeight:600}}>✓ Compte supprimé.</div>}
       </div>}
       <div className="priv-legal">Hébergé dans l'UE · RGPD · Pas de revente.</div>
