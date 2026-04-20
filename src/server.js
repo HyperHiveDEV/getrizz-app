@@ -86,8 +86,10 @@ app.post('/webhook', express.raw({type: 'application/json'}), async (req, res) =
 });
 
 app.post('/api/delete-account', async (req, res) => {
+  console.log('Delete account called, userId:', req.body?.userId);
   try {
     const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
     const { createClient } = await import('@supabase/supabase-js');
     const supaAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
     await supaAdmin.auth.admin.deleteUser(userId);
