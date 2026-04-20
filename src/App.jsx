@@ -392,7 +392,7 @@ function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
       <div className="priv-block"><div className="priv-block-title">📦 Données collectées</div><div className="priv-block-body">Screenshots traités en temps réel, jamais stockés.</div></div>
       <div className="priv-block"><div className="priv-block-title">🤖 Analyse intelligente</div><div className="priv-block-body">Tes conversations sont traitées de manière sécurisée pour générer des réponses adaptées.</div></div>
       <div className="priv-block"><div className="priv-block-title">🛡️ Protection des données</div><div className="priv-block-body">Tes conversations sont utilisées uniquement pour générer tes réponses.</div></div>
-      {isLoggedIn&&<div className="priv-block priv-danger"><div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
+      <div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
         {!deleted&&!showDel&&<button className="priv-action danger" onClick={()=>setShowDel(true)}>🗑️ Supprimer</button>}
         {showDel&&!deleted&&<div className="delete-confirm"><div className="delete-confirm-t">Tu es sûr ?</div><div className="delete-confirm-s">Action définitive.</div><div className="delete-confirm-btns"><button className="btn-cancel" onClick={()=>setShowDel(false)}>Annuler</button><button className="btn-delete" onClick={async()=>{
   console.log('Delete clicked, supaUserId:', supaUserId);
