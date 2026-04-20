@@ -395,7 +395,9 @@ function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
       {isLoggedIn&&<div className="priv-block priv-danger"><div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
         {!deleted&&!showDel&&<button className="priv-action danger" onClick={()=>setShowDel(true)}>🗑️ Supprimer</button>}
         {showDel&&!deleted&&<div className="delete-confirm"><div className="delete-confirm-t">Tu es sûr ?</div><div className="delete-confirm-s">Action définitive.</div><div className="delete-confirm-btns"><button className="btn-cancel" onClick={()=>setShowDel(false)}>Annuler</button><button className="btn-delete" onClick={async()=>{
- 
+  console.log('Delete clicked, supaUserId:', supaUserId);
+  setShowDel(false);
+  if(!supaUserId) return;
   try {
     const res = await fetch('https://getrizz-app-production.up.railway.app/api/delete-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:supaUserId})});
     if(!res.ok) throw new Error('Erreur serveur');
@@ -1786,7 +1788,7 @@ if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/
       <div className="app-content">
         {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail} supaUserId={supaUserId}/>}
         {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal,result:h.result});setTab("analyse");}} supaUserId={supaUserId} setHistory={setHistory}/>}
-        {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout}/>}
+        {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout} supaUserId={supaUserId}/>}
         {tab==="premium"&&<TabPremium userEmail={userEmail} supaUserId={supaUserId}/>}
       </div>
       <div className="app-nav">
