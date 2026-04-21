@@ -384,7 +384,6 @@ function ModalRating({ onClose }) {
   );
 }
 function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
-  const [showDel,setShowDel]=useState(false);const [deleted,setDeleted]=useState(false);
   return (
     <div className="priv-page">
       <button className="priv-back" onClick={onBack}>‹ Retour au profil</button>
@@ -402,7 +401,14 @@ function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
     const res = await fetch('https://getrizz-app-production.up.railway.app/api/delete-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:supaUserId})});
     if(!res.ok) throw new Error('Erreur serveur');
     ls.del("gr_firstname");ls.del("gr_credits");ls.del("gr_history");
-    
+    await supabase.auth.signOut();
+    setDeleted(true);
+  } catch(e) {
+    alert("Erreur lors de la suppression. Réessaie.");
+    console.error(e);
+  }}}>Supprimer</button></div></div>}
+        {deleted&&<div style={{marginTop:10,fontSize:13,color:"#6DD16D",fontWeight:600}}>✓ Compte supprimé.</div>}
+      </div>}
       <div className="priv-legal">Hébergé dans l'UE · RGPD · Pas de revente.</div>
     </div>
   );
