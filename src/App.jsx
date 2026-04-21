@@ -392,7 +392,7 @@ function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
       <div className="priv-block"><div className="priv-block-title">📦 Données collectées</div><div className="priv-block-body">Screenshots traités en temps réel, jamais stockés.</div></div>
       <div className="priv-block"><div className="priv-block-title">🤖 Analyse intelligente</div><div className="priv-block-body">Tes conversations sont traitées de manière sécurisée pour générer des réponses adaptées.</div></div>
       <div className="priv-block"><div className="priv-block-title">🛡️ Protection des données</div><div className="priv-block-body">Tes conversations sont utilisées uniquement pour générer tes réponses.</div></div>
-      <div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
+      {isLoggedIn&&<div className="priv-block priv-danger"><div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
         {!deleted&&!showDel&&<button className="priv-action danger" onClick={()=>setShowDel(true)}>🗑️ Supprimer</button>}
         {showDel&&!deleted&&<div className="delete-confirm"><div className="delete-confirm-t">Tu es sûr ?</div><div className="delete-confirm-s">Action définitive.</div><div className="delete-confirm-btns"><button className="btn-cancel" onClick={()=>setShowDel(false)}>Annuler</button><button className="btn-delete" onClick={async()=>{
   console.log('Delete clicked, supaUserId:', supaUserId);
@@ -402,14 +402,7 @@ function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
     const res = await fetch('https://getrizz-app-production.up.railway.app/api/delete-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:supaUserId})});
     if(!res.ok) throw new Error('Erreur serveur');
     ls.del("gr_firstname");ls.del("gr_credits");ls.del("gr_history");
-    await supabase.auth.signOut();
-    setDeleted(true);
-  } catch(e) {
-    alert("Erreur lors de la suppression. Réessaie.");
-    console.error(e);
-  }}}>Supprimer</button></div></div>}
-        {deleted&&<div style={{marginTop:10,fontSize:13,color:"#6DD16D",fontWeight:600}}>✓ Compte supprimé.</div>}
-      </div>}
+    
       <div className="priv-legal">Hébergé dans l'UE · RGPD · Pas de revente.</div>
     </div>
   );
