@@ -1417,7 +1417,7 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
         }
       } else {
         const res = await sbSignIn(email, pass);
-        if(res.error) throw new Error(res.error.message);
+        if(res.error || res.error_description || !res.access_token) throw new Error(res.error_description || res.error?.message || "Email ou mot de passe incorrect");
         const firstName = res.user?.user_metadata?.name || email.split("@")[0];
         onAuth({ email, firstName, userId: res.user?.id, token: res.access_token });
       }
