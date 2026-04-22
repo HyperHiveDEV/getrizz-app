@@ -1411,6 +1411,7 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
         if(res.error) throw new Error(res.error.message);
         // Traiter le parrainage
         const pendingRef = ls.get('gr_pending_ref');
+        console.log('Pending ref:', pendingRef);
         if(pendingRef && res.user?.id) {
           // Sauvegarder le référent sur le nouveau compte
           await supabase.from('profiles').update({referred_by: pendingRef}).eq('user_id', res.user.id);
