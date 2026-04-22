@@ -458,7 +458,7 @@ function ReferralPopup({ onClose, setCredits, userEmail }) {
   });
   const [copied,setCopied] = useState(false);
   const [claimed,setClaimed] = useState(false);
-  const refLink = `https://getrizz.app/?ref=${refCode}`;
+  const refLink = `https://getyourrizz.app/?ref=${refCode}`;
   const handleCopy = async() => {
     try{ await navigator.clipboard.writeText(refLink); }catch(e){ const t=document.createElement("textarea");t.value=refLink;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t); }
     setCopied(true); setTimeout(()=>setCopied(false),2500);
@@ -521,7 +521,7 @@ function ReferralCard({ setCredits, userEmail }) {
   });
   const [refCount] = useState(()=>{ return parseInt(ls.get("gr_ref_count")||"0"); });
   const [copied,setCopied] = useState(false);
-  const refLink = `https://getrizz.app/?ref=${refCode}`;
+  const refLink = `https://getyourrizz.app/?ref=${refCode}`;
   const handleCopy = async() => {
     try{ await navigator.clipboard.writeText(refLink); }catch(e){ const t=document.createElement("textarea");t.value=refLink;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t); }
     setCopied(true); setTimeout(()=>setCopied(false),2500);
