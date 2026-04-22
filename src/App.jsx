@@ -1659,6 +1659,12 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setUserPrefix(pfx);
     setIsLoggedIn(true);
     setShowAuthModal(false);
+    // Sauvegarder le ref_code dans Supabase
+    if(userId) {
+      const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
+      const refCode = ls.get(refKey);
+      if(refCode) supabase.from('profiles').update({ref_code: refCode}).eq('user_id', userId);
+    }
     ls.del("gr_guest_active");
     if(userId) {
       supabase.from('analyses').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(20)
