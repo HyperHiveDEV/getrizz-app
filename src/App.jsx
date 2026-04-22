@@ -1409,6 +1409,21 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
       if(mode==="signup") {
         const res = await sbSignUp(email, pass, name||email.split("@")[0]);
         if(res.error) throw new Error(res.error.message);
+        // Traiter le parrainage
+        const pendingRef = ls.get('gr_pending_ref');
+        if(pendingRef && res.user?.id) {
+          // Sauvegarder le référent sur le nouveau compte
+          await supabase.from('profiles').update({referred_by: pendingRef}).eq('user_id', res.user.id);
+          // Trouver l'inviteur et lui ajouter des crédits
+          const {data: inviter} = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
+          if(inviter) {
+            await supabase.from('profiles').update({
+              credits: inviter.credits + 5,
+              ref_count: inviter.ref_count + 1
+            }).eq('user_id', inviter.user_id);
+          }
+          ls.del('gr_pending_ref');
+        }
         if(res.access_token) {
           const fn = name || email.split("@")[0];
           onAuth({ email, firstName: fn, userId: res.user?.id, token: res.access_token });
@@ -1417,7 +1432,7 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
         }
       } else {
         const res = await sbSignIn(email, pass);
-        if(res.error || res.error_description || !res.access_token) throw new Error(res.error_description || res.error?.message || "Email ou mot de passe incorrect");
+        if(res.error) throw new Error(res.error.message);
         const firstName = res.user?.user_metadata?.name || email.split("@")[0];
         onAuth({ email, firstName, userId: res.user?.id, token: res.access_token });
       }
@@ -1543,6 +1558,12 @@ export default function App() {
     setAuthStep("payment_success");
     window.history.replaceState({}, document.title, window.location.pathname);
     return;
+  }
+  // Sauvegarder le code de parrainage si présent dans l'URL
+  const refCode = params.get('ref');
+  if(refCode) {
+    ls.set('gr_pending_ref', refCode);
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
   const hash = window.location.hash;
   if(hash && hash.includes('access_token') || hash.includes('type=recovery')) {
