@@ -1603,10 +1603,14 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setIsLoggedIn(true);
     // Charger les crédits depuis Supabase
     if(u.id) {
-      supabase.from('profiles').select('credits, is_premium').eq('user_id', u.id).single()
+      supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', u.id).single()
         .then(({data}) => { if(data) {
         setCredits(data.is_premium ? 999 : data.credits);
         setIsPremium(data.is_premium || false);
+        if(data.ref_code) {
+          const refKey = u.email ? "gr_ref_code_"+u.email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
+          ls.set(refKey, data.ref_code);
+        }
       } else setCredits(3); });
       supabase.from('analyses').select('*').eq('user_id', u.id).order('created_at', {ascending:false}).limit(20)
         .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
