@@ -1413,10 +1413,12 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
         const pendingRef = ls.get('gr_pending_ref');
         console.log('Pending ref:', pendingRef);
         if(pendingRef && res.user?.id) {
-          // Sauvegarder le référent sur le nouveau compte
-          await supabase.from('profiles').update({referred_by: pendingRef}).eq('user_id', res.user.id);
+          // Sauvegarder le ref_code du nouvel utilisateur ET le referred_by
+          const newRefCode = (res.user.user_metadata?.name||"USER").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4)+""+Math.floor(1000+Math.random()*9000);
+          await supabase.from('profiles').update({referred_by: pendingRef, ref_code: newRefCode}).eq('user_id', res.user.id);
           // Trouver l'inviteur et lui ajouter des crédits
           const {data: inviter} = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
+          console.log('Inviter found:', inviter);
           if(inviter) {
             await supabase.from('profiles').update({
               credits: inviter.credits + 5,
