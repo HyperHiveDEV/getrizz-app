@@ -1417,8 +1417,9 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
           const newRefCode = (res.user.user_metadata?.name||"USER").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4)+""+Math.floor(1000+Math.random()*9000);
           await supabase.from('profiles').update({referred_by: pendingRef, ref_code: newRefCode}).eq('user_id', res.user.id);
           // Trouver l'inviteur et lui ajouter des crédits
-          const {data: inviter} = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
-          console.log('Inviter found:', inviter);
+          const {data: inviter, error: inviterError} = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
+console.log('Inviter found:', inviter);
+console.log('Inviter error:', inviterError);
           if(inviter) {
             await supabase.from('profiles').update({
               credits: inviter.credits + 5,
