@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 // ── DEV MODE — mettre false pour repasser en mode normal users ──
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,900;1,9..144,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap');
@@ -383,7 +383,8 @@ function ModalRating({ onClose }) {
     </Modal>
   );
 }
-function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
+function PrivacyPage({ onBack, isLoggedIn }) {
+  const [showDel,setShowDel]=useState(false);const [deleted,setDeleted]=useState(false);
   return (
     <div className="priv-page">
       <button className="priv-back" onClick={onBack}>‹ Retour au profil</button>
@@ -391,7 +392,11 @@ function PrivacyPage({ onBack, isLoggedIn, supaUserId }) {
       <div className="priv-block"><div className="priv-block-title">📦 Données collectées</div><div className="priv-block-body">Screenshots traités en temps réel, jamais stockés.</div></div>
       <div className="priv-block"><div className="priv-block-title">🤖 Analyse intelligente</div><div className="priv-block-body">Tes conversations sont traitées de manière sécurisée pour générer des réponses adaptées.</div></div>
       <div className="priv-block"><div className="priv-block-title">🛡️ Protection des données</div><div className="priv-block-body">Tes conversations sont utilisées uniquement pour générer tes réponses.</div></div>
-      
+      {isLoggedIn&&<div className="priv-block priv-danger"><div className="priv-block-title">🗑️ Supprimer mon compte</div><div className="priv-block-body">Action irréversible.</div>
+        {!deleted&&!showDel&&<button className="priv-action danger" onClick={()=>setShowDel(true)}>🗑️ Supprimer</button>}
+        {showDel&&!deleted&&<div className="delete-confirm"><div className="delete-confirm-t">Tu es sûr ?</div><div className="delete-confirm-s">Action définitive.</div><div className="delete-confirm-btns"><button className="btn-cancel" onClick={()=>setShowDel(false)}>Annuler</button><button className="btn-delete" onClick={()=>{setShowDel(false);setDeleted(true);ls.del("gr_firstname");ls.del("gr_credits");ls.del("gr_history");}}>Supprimer</button></div></div>}
+        {deleted&&<div style={{marginTop:10,fontSize:13,color:"#6DD16D",fontWeight:600}}>✓ Compte supprimé.</div>}
+      </div>}
       <div className="priv-legal">Hébergé dans l'UE · RGPD · Pas de revente.</div>
     </div>
   );
@@ -436,7 +441,7 @@ function GuestConversionPopup({ onClose, onShowAuth, title, body }) {
           <button onClick={()=>{onClose();onShowAuth();}} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 20px rgba(232,72,60,.35)"}}>
             🚀 Créer mon compte
           </button>
-          <div style={{textAlign:"center",fontSize:12,color:"#7A6860"}}>Déjà +{count} analyses générées aujourd'hui 🔥</div>
+          <div style={{textAlign:"center",fontSize:12,color:"#7A6860"}}>Déjà +1200 analyses générées aujourd'hui 🔥</div>
           <button onClick={()=>{onClose();onShowAuth();}} style={{width:"100%",padding:"13px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,color:"#F2E8E0",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
             Se connecter
           </button>
@@ -458,7 +463,7 @@ function ReferralPopup({ onClose, setCredits, userEmail }) {
   });
   const [copied,setCopied] = useState(false);
   const [claimed,setClaimed] = useState(false);
-  const refLink = `https://getyourrizz.app/?ref=${refCode}`;
+  const refLink = `https://getrizz.app/?ref=${refCode}`;
   const handleCopy = async() => {
     try{ await navigator.clipboard.writeText(refLink); }catch(e){ const t=document.createElement("textarea");t.value=refLink;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t); }
     setCopied(true); setTimeout(()=>setCopied(false),2500);
@@ -521,7 +526,7 @@ function ReferralCard({ setCredits, userEmail }) {
   });
   const [refCount] = useState(()=>{ return parseInt(ls.get("gr_ref_count")||"0"); });
   const [copied,setCopied] = useState(false);
-  const refLink = `https://getyourrizz.app/?ref=${refCode}`;
+  const refLink = `https://getrizz.app/?ref=${refCode}`;
   const handleCopy = async() => {
     try{ await navigator.clipboard.writeText(refLink); }catch(e){ const t=document.createElement("textarea");t.value=refLink;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t); }
     setCopied(true); setTimeout(()=>setCopied(false),2500);
@@ -558,7 +563,7 @@ function ReferralCard({ setCredits, userEmail }) {
   );
 }
 
-function TabAnalyse({ firstName, credits, setCredits, history, setHistory, replayData, setReplayData, isLoggedIn, isPremium, onShowAuth, userEmail, supaUserId }) {
+function TabAnalyse({ firstName, credits, setCredits, history, setHistory, replayData, setReplayData, isLoggedIn, isPremium, onShowAuth }) {
   const [imgPreview,setImgPreview]=useState(null);const [imgBase64,setImgBase64]=useState(null);
   const fileEl=useRef(null);const [showGuestLimitUpload,setShowGuestLimitUpload]=useState(false);const [app,setApp]=useState("Tinder");const [goal,setGoal]=useState("reply");
   const [loading,setLoading]=useState(false);const [result,setResult]=useState(null);const [error,setError]=useState(null);
@@ -574,11 +579,7 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
     if(!replayData) return;
     setApp(replayData.app);
     setGoal(replayData.goal);
-    if(replayData.result) {
-      setResult(replayData.result);
-    } else {
-      setResult(null);setImgPreview(null);setImgBase64(null);setError(null);
-    }
+    setResult(null);setImgPreview(null);setImgBase64(null);setError(null);
     setToast(`⚡ App et objectif pré-remplis depuis ton historique !`);
     setTimeout(()=>setToast(null), 3500);
     setReplayData(null);
@@ -593,22 +594,13 @@ function TabAnalyse({ firstName, credits, setCredits, history, setHistory, repla
     for(let i=0;i<LS.length;i++){setLoadStep(i);await new Promise(r=>setTimeout(r,650));}
     try{
       const gm={reply:"répondre intelligemment au dernier message",relaunch:"relancer la conversation",date:"proposer un rendez-vous",opener:"envoyer un premier message accrocheur"};
-      const res=await fetch("https://getrizz-app-production.up.railway.app/api/analyze",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:"Tu es Get'Rizz. Réponds UNIQUEMENT en JSON valide sans markdown.",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:imgBase64}},{type:"text",text:`App:${app} Objectif:${gm[goal]}\nJSON:{"interest_score":<1-10>,"tone":"<Flirty|Neutre|Curieux|Distant>","recommendation":"<phrase courte>","analysis":"<2 phrases max>","suggestions":[{"tone":"Chill","message":"<msg>","why":"<phrase>"},{"tone":"Bold","message":"<msg>","why":"<phrase>"},{"tone":"Cut","message":"<msg>","why":"<phrase>"}]}`}]}]})});
+      const res=await fetch("http://192.168.1.62:3001/api/analyze",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:"Tu es Get'Rizz. Réponds UNIQUEMENT en JSON valide sans markdown.",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:imgBase64}},{type:"text",text:`App:${app} Objectif:${gm[goal]}\nJSON:{"interest_score":<1-10>,"tone":"<Flirty|Neutre|Curieux|Distant>","recommendation":"<phrase courte>","analysis":"<2 phrases max>","suggestions":[{"tone":"Chill","message":"<msg>","why":"<phrase>"},{"tone":"Bold","message":"<msg>","why":"<phrase>"},{"tone":"Cut","message":"<msg>","why":"<phrase>"}]}`}]}]})});
       if(!res.ok){const e=await res.json().catch(()=>{});throw new Error(e?.error?.message||`Erreur ${res.status}`);}
       const data=await res.json();
       const r=JSON.parse((data.content?.[0]?.text||"").replace(/```json|```/g,"").trim());
       setResult(r);
-
-      if(!DEV_MODE && isLoggedIn && !isPremium) {
-        setCredits(c=>Math.max(0,c-1));
-if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = await supabase.from('profiles').update({credits: newCredits}).eq('user_id', supaUserId);  }
-      }
-      const newEntry = {id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()};
-      setHistory(h=>[newEntry,...h].slice(0,20));
-      if(supaUserId) {
-        const {error} = await supabase.from('analyses').insert({user_id:supaUserId,app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",result:r});
-        console.log('Analyses insert:', error || 'success');
-      }
+      if(!DEV_MODE && isLoggedIn && !isPremium) setCredits(c=>Math.max(0,c-1));
+      setHistory(h=>[{id:Date.now(),app,goal,score:r.interest_score,preview:r.suggestions?.[0]?.message||"",ts:new Date()},...h].slice(0,20));
       if(!DEV_MODE) setTimeout(()=>setShowCta(true), 3500);
       // Show referral popup after first analysis ever
       const isFirstAnalysis = history.length === 0;
@@ -621,7 +613,7 @@ if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = awai
     setRegening(true);setCopied(null);
     try{
       const gm={reply:"répondre intelligemment au dernier message",relaunch:"relancer la conversation",date:"proposer un rendez-vous",opener:"envoyer un premier message accrocheur"};
-      const res=await fetch("https://getrizz-app-production.up.railway.app/api/analyze",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:"Tu es Get'Rizz. Réponds UNIQUEMENT en JSON valide sans markdown.",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:imgBase64}},{type:"text",text:`App:${app} Objectif:${gm[goal]}\nGénère 3 NOUVELLES suggestions différentes des précédentes, plus créatives et variées.\nJSON:{"suggestions":[{"tone":"Chill","message":"<msg>","why":"<phrase>"},{"tone":"Bold","message":"<msg>","why":"<phrase>"},{"tone":"Cut","message":"<msg>","why":"<phrase>"}]}`}]}]})});
+      const res=await fetch("http://192.168.1.62:3001/api/analyze",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,system:"Tu es Get'Rizz. Réponds UNIQUEMENT en JSON valide sans markdown.",messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:imgBase64}},{type:"text",text:`App:${app} Objectif:${gm[goal]}\nGénère 3 NOUVELLES suggestions différentes des précédentes, plus créatives et variées.\nJSON:{"suggestions":[{"tone":"Chill","message":"<msg>","why":"<phrase>"},{"tone":"Bold","message":"<msg>","why":"<phrase>"},{"tone":"Cut","message":"<msg>","why":"<phrase>"}]}`}]}]})});
       if(!res.ok)throw new Error(`Erreur ${res.status}`);
       const data=await res.json();
       const r=JSON.parse((data.content?.[0]?.text||"").replace(/```json|```/g,"").trim());
@@ -748,14 +740,7 @@ if(supaUserId) { const newCredits = Math.max(0, credits-1); const {error} = awai
   );
 }
 
-function TabHistorique({ history, onReplay, supaUserId, setHistory }) {
-  useEffect(() => {
-    if(supaUserId) {
-      supabase.from('analyses').select('*').eq('user_id', supaUserId).order('created_at', {ascending:false}).limit(20)
-        .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
-    }
-  }, [supaUserId]);
-
+function TabHistorique({ history, onReplay }) {
   const appEmoji = {Tinder:"🔥",Bumble:"🐝",Hinge:"💚",Instagram:"📸",WhatsApp:"💬",Autre:"💌"};
   const appColor = {Tinder:"#FE3C72",Bumble:"#FFC629",Hinge:"#0CDB95",Instagram:"#C13584",WhatsApp:"#25D366",Autre:"#E8483C"};
   const goalLabel = {reply:"Répondre",relaunch:"Relancer",date:"Proposer un RDV",opener:"Premier message"};
@@ -823,7 +808,7 @@ function TabHistorique({ history, onReplay, supaUserId, setHistory }) {
                   {/* Replay button */}
                   <div style={{padding:"0 14px 12px"}}>
                     <button onClick={()=>onReplay(h)} style={{width:"100%",padding:"9px",background:"rgba(232,72,60,.08)",border:"1px solid rgba(232,72,60,.2)",borderRadius:9,color:"#FF7A6E",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:7,transition:"all .15s"}}>
-                      🔍 Ré-analyser avec ces paramètres
+                      🔍 Réouvrir l'analyse
                     </button>
                   </div>
                 </div>
@@ -923,7 +908,7 @@ function NotifCenter({notifPrefs, savePrefs, setShowNotifCenter, onToggleMain}) 
   )
 }
 
-function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEmail, onShowAuth, onLogout, supaUserId }) {
+function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEmail, onShowAuth, onLogout }) {
   const [modal,setModal]=useState(null);const [privacy,setPrivacy]=useState(false);
   const [goal,setGoal]=useState("reply");const [app,setApp]=useState("Tinder");const [level,setLevel]=useState("beginner");
   const [showNotifCenter,setShowNotifCenter]=useState(false);
@@ -956,7 +941,7 @@ function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEm
   const [avatarAnim,setAvatarAnim]=useState(false);
   const handleAvatarUpload=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{const b64=ev.target.result;setAvatarUrl(b64);setAvatarAnim(true);setTimeout(()=>setAvatarAnim(false),2000);ls.set(avatarKey,b64);};reader.readAsDataURL(file);};
 
-  if(privacy) return <PrivacyPage onBack={()=>setPrivacy(false)} isLoggedIn={isLoggedIn} supaUserId={supaUserId}/>;
+  if(privacy) return <PrivacyPage onBack={()=>setPrivacy(false)} isLoggedIn={isLoggedIn}/>;
   return(
     <>
       <div className="tab-profil">
@@ -1160,7 +1145,7 @@ function TabProfil({ firstName, credits, setCredits, history, isLoggedIn, userEm
   );
 }
 
-function TabPremium({ userEmail, supaUserId }) {
+function TabPremium() {
   const [annual,setAnnual]=useState(false);const [showWait,setShowWait]=useState(false);
   return(
     <>
@@ -1182,15 +1167,7 @@ function TabPremium({ userEmail, supaUserId }) {
               <div key={i} className="prem-feat"><div className="prem-feat-ico">{f.ico}</div><span style={{flex:1}}>{f.txt}</span><span className="prem-feat-check">✓</span></div>
             ))}
           </div>
-          <button className="prem-cta" onClick={async()=>{
-  const res = await fetch("https://getrizz-app-production.up.railway.app/api/create-checkout", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-   body: JSON.stringify({userId: supaUserId, email: userEmail, plan: annual?"annual":"monthly"})
-  });
-  const data = await res.json();
-  if(data.url) window.location.href = data.url;
-}}>🔥 Essayer Premium gratuitement</button>
+          <button className="prem-cta" onClick={()=>setShowWait(true)}>🔥 Essayer Premium gratuitement</button>
           <div style={{fontSize:12,color:"#6DD16D",textAlign:"center",marginTop:8,fontWeight:600}}>✓ Aucun paiement aujourd'hui</div>
           <div className="prem-legal">7 jours gratuits · Annulable à tout moment · Sans engagement</div>
         </div>
@@ -1261,129 +1238,6 @@ const sbGoogleOAuth = () => {
   window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
 };
 
-function LandingPage({ onStart, onSkip }) {
-  const [count, setCount] = useState(0);
-  const [appIndex, setAppIndex] = useState(0);
-  const [displayed, setDisplayed] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  const apps = ["Tinder 🔥","Bumble 🐝","Hinge 💚","Instagram 📸","WhatsApp 💬"];
-
-  useEffect(() => {
-    let start = 0;
-    const target = 1247;
-    const step = Math.ceil(target / 60);
-    const timer = setInterval(() => {
-      start += step;
-      if(start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(start);
-    }, 20);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const app = apps[appIndex];
-    let timeout;
-    if(!deleting && displayed.length < app.length) {
-      timeout = setTimeout(() => setDisplayed(app.slice(0, displayed.length + 1)), 80);
-    } else if(!deleting && displayed.length === app.length) {
-      timeout = setTimeout(() => setDeleting(true), 1500);
-    } else if(deleting && displayed.length > 0) {
-      timeout = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 40);
-    } else if(deleting && displayed.length === 0) {
-      setDeleting(false);
-      setAppIndex((appIndex + 1) % apps.length);
-    }
-    return () => clearTimeout(timeout);
-  }, [displayed, deleting, appIndex]);
-
-  return (
-    <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",flexDirection:"column",fontFamily:"'DM Sans',sans-serif",maxWidth:480,margin:"0 auto"}}>
-      <div style={{padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
-        <button onClick={onStart} style={{background:"transparent",border:"1px solid rgba(255,255,255,.15)",borderRadius:20,padding:"6px 16px",color:"#F2E8E0",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Connexion</button>
-      </div>
-      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center"}}>
-        <div style={{fontSize:56,marginBottom:16}}>🔥</div>
-        <div style={{fontFamily:"'Fraunces',serif",fontSize:36,fontWeight:900,color:"#F2E8E0",lineHeight:1.1,marginBottom:12}}>L'IA qui écrit<br/>tes réponses<br/><span style={{color:"#FF7A6E",fontStyle:"italic"}}>{displayed}<span style={{borderRight:"2px solid #FF7A6E",marginLeft:2,animation:"tspin .7s steps(1) infinite"}}></span></span></div>
-        <div style={{fontSize:15,color:"#7A6860",lineHeight:1.7,marginBottom:32,maxWidth:320}}>Upload un screenshot de ta conversation. Reçois 3 réponses parfaites en 30 secondes.</div>
-        <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340,marginBottom:40}}>
-          {[{ico:"📊",txt:"Score d'intérêt + Rizz Score"},{ico:"💬",txt:"3 réponses personnalisées : Chill, Bold, Cut"},{ico:"🎯",txt:"Probabilité d'obtenir un date"},{ico:"🔥",txt:"Tinder, Bumble, Hinge, Instagram..."}].map(({ico,txt})=>(
-            <div key={txt} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",borderRadius:12,padding:"12px 16px",textAlign:"left"}}>
-              <span style={{fontSize:20,flexShrink:0}}>{ico}</span>
-              <span style={{fontSize:13,color:"rgba(242,232,224,.8)",fontWeight:500}}>{txt}</span>
-            </div>
-          ))}
-        </div>
-        <button onClick={onStart} style={{width:"100%",maxWidth:340,padding:"18px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:16,color:"#fff",fontSize:17,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 6px 30px rgba(232,72,60,.35)",marginBottom:14}}>🚀 Essayer gratuitement</button>
-        <div style={{fontSize:12,color:"#4A3830",marginBottom:8}}>3 analyses offertes · Sans carte bancaire</div>
-        
-      </div>
-      <div style={{padding:"16px 24px 32px",textAlign:"center"}}>
-        <div style={{fontSize:12,color:"#4A3830",fontFamily:"'Space Mono',monospace"}}>+{count} analyses générées aujourd'hui 🔥</div>
-      </div>
-    </div>
-  );
-}
-
-function ResetPasswordModal({ onDone }) {
-  const [pass, setPass] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState(null);
-  const isValid = pass.length >= 6 && pass === confirm;
-
-  const handleReset = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const hash = window.location.hash;
-      const params = new URLSearchParams(hash.substring(1));
-      const access_token = params.get('access_token');
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${access_token}`
-        },
-        body: JSON.stringify({ password: pass })
-      });
-      const data = await res.json();
-      if(data.error) throw new Error(data.error.message);
-      setDone(true);
-      setTimeout(()=>onDone(), 2000);
-    } catch(e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{background:"#0A0806",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"'DM Sans',sans-serif"}}>
-      <div style={{width:"100%",maxWidth:360,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.07)",borderRadius:20,padding:"28px 24px"}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:900,color:"#FF7A6E",marginBottom:6,textAlign:"center"}}>Nouveau mot de passe</div>
-        {done
-          ? <div style={{background:"rgba(109,209,109,.08)",border:"1px solid rgba(109,209,109,.3)",borderRadius:10,padding:"14px",fontSize:13,color:"#6DD16D",textAlign:"center"}}>✅ Mot de passe mis à jour !</div>
-          : <>
-              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16,marginTop:20}}>
-                <input type="password" placeholder="Nouveau mot de passe" value={pass} onChange={e=>setPass(e.target.value)}
-                  style={{width:"100%",background:"rgba(255,255,255,.04)",border:`2px solid ${pass.length>=6?"rgba(109,209,109,.35)":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"13px 16px",color:"#F2E8E0",fontFamily:"'DM Sans',sans-serif",fontSize:15,outline:"none"}}/>
-                <input type="password" placeholder="Confirmer le mot de passe" value={confirm} onChange={e=>setConfirm(e.target.value)}
-                  style={{width:"100%",background:"rgba(255,255,255,.04)",border:`2px solid ${confirm.length>=6&&confirm===pass?"rgba(109,209,109,.35)":"rgba(255,255,255,.08)"}`,borderRadius:12,padding:"13px 16px",color:"#F2E8E0",fontFamily:"'DM Sans',sans-serif",fontSize:15,outline:"none"}}/>
-              </div>
-              {error&&<div style={{background:"rgba(232,72,60,.1)",border:"1px solid rgba(232,72,60,.3)",borderRadius:10,padding:"10px 12px",fontSize:12,color:"#FF7A6E",marginBottom:12}}>⚠️ {error}</div>}
-              <button onClick={handleReset} disabled={!isValid||loading}
-                style={{width:"100%",padding:"14px",background:isValid&&!loading?"linear-gradient(135deg,#E8483C,#FF7A6E)":"rgba(255,255,255,.05)",border:"none",borderRadius:12,color:isValid&&!loading?"#fff":"#7A6860",fontSize:15,fontWeight:700,cursor:isValid&&!loading?"pointer":"not-allowed",fontFamily:"'DM Sans',sans-serif"}}>
-                {loading?"Mise à jour…":"🔒 Mettre à jour"}
-              </button>
-            </>
-        }
-      </div>
-    </div>
-  );
-}
 function AuthModal({ onAuth, onSkip, isModal=false }) {
   const [mode,setMode]     = useState("login");
   const [email,setEmail]   = useState("");
@@ -1409,33 +1263,8 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
       if(mode==="signup") {
         const res = await sbSignUp(email, pass, name||email.split("@")[0]);
         if(res.error) throw new Error(res.error.message);
-        // Traiter le parrainage
-       const pendingRef = ls.get('gr_pending_ref');
-console.log('Pending ref:', pendingRef);
-console.log('res.user:', res.user);
-console.log('res.user?.id:', res.user?.id);
-if(pendingRef && res.user?.id) {
-          // Sauvegarder le ref_code du nouvel utilisateur ET le referred_by
-          const newRefCode = (res.user.user_metadata?.name||"USER").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4)+""+Math.floor(1000+Math.random()*9000);
-          await supabase.from('profiles').update({referred_by: pendingRef, ref_code: newRefCode}).eq('user_id', res.user.id);
-          // Trouver l'inviteur et lui ajouter des crédits
-          const {data: inviter, error: inviterError} = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
-console.log('Inviter found:', inviter);
-console.log('Inviter error:', inviterError);
-          if(inviter) {
-            await supabase.from('profiles').update({
-              credits: inviter.credits + 5,
-              ref_count: inviter.ref_count + 1
-            }).eq('user_id', inviter.user_id);
-          }
-          ls.del('gr_pending_ref');
-        }
-        if(res.access_token) {
-          const fn = name || email.split("@")[0];
-          onAuth({ email, firstName: fn, userId: res.user?.id, token: res.access_token });
-        } else {
-          setSent(true);
-        }
+        // Email de confirmation envoyé — Supabase ne retourne pas de session immédiate
+        setSent(true);
       } else {
         const res = await sbSignIn(email, pass);
         if(res.error) throw new Error(res.error.message);
@@ -1515,15 +1344,7 @@ console.log('Inviter error:', inviterError);
 
         {/* Forgot password */}
         {mode==="login"&&<div style={{textAlign:"center",marginTop:12}}>
-          <span onClick={()=>{setMode("forgot");setError(null);setSent(false);}} style={{fontSize:12,color:"#7A6860",cursor:"pointer",textDecoration:"underline"}}>Mot de passe oublié ?</span>
-        </div>}
-        {mode==="forgot"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {!sent?<><input type="email" placeholder="Ton email" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle(isValidEmail)}/>
-          <button onClick={async()=>{setLoading(true);await sbFetch("/auth/v1/recover",{method:"POST",body:JSON.stringify({email})});setLoading(false);setSent(true);}} disabled={!isValidEmail||loading} style={{width:"100%",padding:"14px",background:isValidEmail&&!loading?"linear-gradient(135deg,#E8483C,#FF7A6E)":"rgba(255,255,255,.05)",border:"none",borderRadius:12,color:isValidEmail&&!loading?"#fff":"#7A6860",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
-            {loading?"Envoi…":"📧 Envoyer le lien"}
-          </button></>
-          :<div style={{background:"rgba(109,209,109,.08)",border:"1px solid rgba(109,209,109,.3)",borderRadius:10,padding:"14px",fontSize:13,color:"#6DD16D",textAlign:"center"}}>📧 <strong>Vérifie ton email !</strong><br/>Un lien de réinitialisation t'a été envoyé.</div>}
-          <span onClick={()=>{setMode("login");setError(null);}} style={{fontSize:12,color:"#7A6860",cursor:"pointer",textDecoration:"underline",textAlign:"center"}}>← Retour à la connexion</span>
+          <span onClick={()=>{setMode("forgot");setError(null);}} style={{fontSize:12,color:"#7A6860",cursor:"pointer",textDecoration:"underline"}}>Mot de passe oublié ?</span>
         </div>}
 
         {/* Bonus inscription */}
@@ -1556,23 +1377,11 @@ export default function App() {
   const [supaUserId,setSupaUserId]=useState(null);
   const [tab,setTab]=useState("analyse");
 
-  // ──  ──
+  // ── Restore Supabase session on mount ──
   useEffect(()=>{
   // Lire le token depuis le hash URL (retour OAuth Google)
-  const params = new URLSearchParams(window.location.search);
-  if(params.get('payment') === 'success') {
-    setAuthStep("payment_success");
-    window.history.replaceState({}, document.title, window.location.pathname);
-    return;
-  }
-  // Sauvegarder le code de parrainage si présent dans l'URL
-  const refCode = params.get('ref');
-  if(refCode) {
-    ls.set('gr_pending_ref', refCode);
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
   const hash = window.location.hash;
-  if(hash && hash.includes('access_token') || hash.includes('type=recovery')) {
+  if(hash && hash.includes('access_token')) {
     const params = new URLSearchParams(hash.substring(1));
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
@@ -1588,9 +1397,7 @@ export default function App() {
             setIsLoggedIn(true);
             setAuthStep("app");
             window.history.replaceState({}, document.title, window.location.pathname);
-          const params2 = new URLSearchParams(hash.substring(1));
-if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
-          if(params2.get('type')==='signup') { setAuthStep("confirmed"); return; }          }
+          }
         });
       return;
     }
@@ -1604,25 +1411,11 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setUserEmail(u.email||"");
     setSupaUserId(u.id||null);
     setIsLoggedIn(true);
-    // Charger les crédits depuis Supabase
-    if(u.id) {
-      supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', u.id).single()
-        .then(({data}) => { if(data) {
-        setCredits(data.is_premium ? 999 : data.credits);
-        setIsPremium(data.is_premium || false);
-        if(data.ref_code) {
-          const refKey = u.email ? "gr_ref_code_"+u.email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
-          ls.set(refKey, data.ref_code);
-        }
-      } else setCredits(3); });
-      supabase.from('analyses').select('*').eq('user_id', u.id).order('created_at', {ascending:false}).limit(20)
-        .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
-    }
     setAuthStep("app");
   } else {
     const guestActive = ls.get("gr_guest_active");
     if(guestActive) setAuthStep("app");
-    else setAuthStep("landing");
+    else setAuthStep("auth");
   }
 },[]);
   // ── Per-user storage prefix (unique guest session vs account) ──
@@ -1669,34 +1462,46 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setUserPrefix(pfx);
     setIsLoggedIn(true);
     setShowAuthModal(false);
-    // // Sauvegarder le ref_code dans Supabase
-if(userId) {
-  const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
-  const refCode = ls.get(refKey);
-  if(refCode) supabase.from('profiles').update({ref_code: refCode}).eq('user_id', userId);
-}
-    if(userId) {
-      const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
-      const refCode = ls.get(refKey);
-      if(refCode) supabase.from('profiles').update({ref_code: refCode}).eq('user_id', userId);
-    }
     ls.del("gr_guest_active");
+    // Traiter le parrainage après connexion
     if(userId) {
+      const pendingRef = ls.get('gr_pending_ref');
+      // Lire ref_code, crédits et is_premium depuis Supabase
+      const { data: profile } = await supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', userId).single();
+      if(profile) {
+        setCredits(profile.is_premium ? 999 : profile.credits);
+        setIsPremium(profile.is_premium || false);
+        if(profile.ref_code) {
+          const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
+          ls.set(refKey, profile.ref_code);
+        }
+      } else {
+        setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+      }
+      // Traiter le parrainage si pending
+      if(pendingRef) {
+        console.log('Traitement parrainage:', pendingRef);
+        const { data: inviter } = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
+        console.log('Inviter found:', inviter);
+        if(inviter) {
+          await supabase.from('profiles').update({
+            credits: inviter.credits + 5,
+            ref_count: inviter.ref_count + 1
+          }).eq('user_id', inviter.user_id);
+          await supabase.from('profiles').update({ referred_by: pendingRef }).eq('user_id', userId);
+          console.log('Parrainage traité avec succès !');
+        }
+        ls.del('gr_pending_ref');
+      }
+      // Charger l'historique
       supabase.from('analyses').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(20)
         .then(({data}) => {
           if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)})));
           else setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
         });
     } else {
-      setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
-    }
-    // Charger les crédits depuis Supabase
-    if(userId && !DEV_MODE) {
-      const { data } = await supabase.from('profiles').select('credits').eq('user_id', userId).single();
-      if(data) setCredits(data.credits);
-      else setCredits(3);
-    } else {
       setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+      setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
     }
     setAuthStep("app");
   };
@@ -1748,40 +1553,8 @@ if(userId) {
     </div>
   );
   // ── Auth screen ──
-if(authStep==="reset") return <ResetPasswordModal onDone={()=>setAuthStep("auth")}/>;
-if(authStep==="payment_success") return(
-  <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,fontFamily:"'DM Sans',sans-serif",padding:"24px"}}>
-    <div style={{fontFamily:"'Fraunces',serif",fontSize:30,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
-    <div style={{background:"linear-gradient(135deg,rgba(232,72,60,.15),rgba(255,122,110,.08))",border:"1px solid rgba(232,72,60,.3)",borderRadius:20,padding:"32px 24px",textAlign:"center",maxWidth:340}}>
-      <div style={{fontSize:52,marginBottom:16}}>👑</div>
-      <div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:900,color:"#F2E8E0",marginBottom:8}}>Bienvenue dans Premium !</div>
-      <div style={{fontSize:14,color:"#7A6860",lineHeight:1.6,marginBottom:24}}>Analyses illimitées, suggestions ultra-personnalisées. Tu es maintenant un Rizz Master. 🔥</div>
-      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
-        {[["⚡","Analyses illimitées"],["🎯","Suggestions ultra-personnalisées"],["📊","Score conversationnel avancé"],["🚀","Accès aux nouvelles fonctionnalités"]].map(([ico,txt])=>(
-          <div key={txt} style={{display:"flex",alignItems:"center",gap:10,fontSize:13,color:"rgba(242,232,224,.8)"}}>
-            <span style={{width:28,height:28,background:"rgba(232,72,60,.1)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>{ico}</span>
-            {txt}
-          </div>
-        ))}
-      </div>
-      <button onClick={()=>setAuthStep("app")} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",boxShadow:"0 4px 20px rgba(232,72,60,.3)"}}>
-        🔥 Commencer à analyser
-      </button>
-    </div>
-  </div>
-);
-if(authStep==="confirmed") return(
-  <div style={{minHeight:"100vh",background:"#0A0806",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,fontFamily:"'DM Sans',sans-serif"}}>
-    <div style={{fontFamily:"'Fraunces',serif",fontSize:30,fontWeight:900,color:"#FF7A6E"}}>Get'<span style={{color:"#F2E8E0"}}>Rizz</span></div>
-    <div style={{background:"rgba(109,209,109,.08)",border:"1px solid rgba(109,209,109,.3)",borderRadius:16,padding:"24px",textAlign:"center",maxWidth:320}}>
-      <div style={{fontSize:40,marginBottom:12}}>✅</div>
-      <div style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:900,color:"#F2E8E0",marginBottom:8}}>Email confirmé !</div>
-      <div style={{fontSize:13,color:"#7A6860",marginBottom:20}}>Ton compte est activé. Tu peux maintenant te connecter.</div>
-      <button onClick={()=>setAuthStep("auth")} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#E8483C,#FF7A6E)",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>🔥 Se connecter</button>
-    </div>
-  </div>
-);if(authStep==="landing") return <LandingPage onStart={()=>setAuthStep("auth")} onSkip={handleSkip}/>;
-if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
+  if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/>;
+
   return(
     <div className="app">
       <div className="app-top">
@@ -1810,10 +1583,10 @@ if(authStep==="auth") return <AuthModal onAuth={handleAuth} onSkip={handleSkip}/
         </div>
       )}
       <div className="app-content">
-        {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)} userEmail={userEmail} supaUserId={supaUserId}/>}
-        {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal,result:h.result});setTab("analyse");}} supaUserId={supaUserId} setHistory={setHistory}/>}
-        {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout} supaUserId={supaUserId}/>}
-        {tab==="premium"&&<TabPremium userEmail={userEmail} supaUserId={supaUserId}/>}
+        {tab==="analyse"&&<TabAnalyse firstName={firstName} credits={credits} setCredits={setCredits} history={history} setHistory={setHistory} replayData={replayData} setReplayData={setReplayData} isLoggedIn={isLoggedIn} isPremium={isPremium} onShowAuth={()=>setShowAuthModal(true)}/>}
+        {tab==="historique"&&<TabHistorique history={history} onReplay={h=>{setReplayData({app:h.app,goal:h.goal});setTab("analyse");}}/>}
+        {tab==="profil"&&<TabProfil firstName={firstName} credits={credits} setCredits={setCredits} history={history} isLoggedIn={isLoggedIn} userEmail={userEmail} onShowAuth={()=>setShowAuthModal(true)} onLogout={handleLogout}/>}
+        {tab==="premium"&&<TabPremium/>}
       </div>
       <div className="app-nav">
         {NAV.map(n=>(
