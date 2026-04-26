@@ -1410,9 +1410,11 @@ function AuthModal({ onAuth, onSkip, isModal=false }) {
         const res = await sbSignUp(email, pass, name||email.split("@")[0]);
         if(res.error) throw new Error(res.error.message);
         // Traiter le parrainage
-        const pendingRef = ls.get('gr_pending_ref');
-        console.log('Pending ref:', pendingRef);
-        if(pendingRef && res.user?.id) {
+       const pendingRef = ls.get('gr_pending_ref');
+console.log('Pending ref:', pendingRef);
+console.log('res.user:', res.user);
+console.log('res.user?.id:', res.user?.id);
+if(pendingRef && res.user?.id) {
           // Sauvegarder le ref_code du nouvel utilisateur ET le referred_by
           const newRefCode = (res.user.user_metadata?.name||"USER").toUpperCase().replace(/[^A-Z]/g,"").slice(0,4)+""+Math.floor(1000+Math.random()*9000);
           await supabase.from('profiles').update({referred_by: pendingRef, ref_code: newRefCode}).eq('user_id', res.user.id);
