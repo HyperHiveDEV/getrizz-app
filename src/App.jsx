@@ -1666,7 +1666,12 @@ if(params2.get('type')==='recovery') { setAuthStep("reset"); return; }
     setUserPrefix(pfx);
     setIsLoggedIn(true);
     setShowAuthModal(false);
-    // Sauvegarder le ref_code dans Supabase
+    // // Sauvegarder le ref_code dans Supabase
+if(userId) {
+  const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
+  const refCode = ls.get(refKey);
+  if(refCode) supabase.from('profiles').update({ref_code: refCode}).eq('user_id', userId);
+}
     if(userId) {
       const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
       const refCode = ls.get(refKey);
