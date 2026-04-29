@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 // ── DEV MODE — mettre false pour repasser en mode normal users ──
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,900;1,9..144,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap');
@@ -1411,6 +1411,21 @@ export default function App() {
     setUserEmail(u.email||"");
     setSupaUserId(u.id||null);
     setIsLoggedIn(true);
+    if(u.id) {
+      supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', u.id).single()
+        .then(({data}) => {
+          if(data) {
+            setCredits(data.is_premium ? 999 : data.credits);
+            setIsPremium(data.is_premium || false);
+            if(data.ref_code) {
+              const refKey = u.email ? "gr_ref_code_"+u.email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
+              ls.set(refKey, data.ref_code);
+            }
+          }
+        });
+      supabase.from('analyses').select('*').eq('user_id', u.id).order('created_at', {ascending:false}).limit(20)
+        .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
+    }
     setAuthStep("app");
   } else {
     const guestActive = ls.get("gr_guest_active");
@@ -1452,7 +1467,7 @@ export default function App() {
   useEffect(()=>{ if(!DEV_MODE && userPrefix) ls.set(userPrefix+"_credits", String(credits)); },[credits, userPrefix]);
   useEffect(()=>{ if(userPrefix) ls.set(userPrefix+"_history", JSON.stringify(history)); },[history, userPrefix]);
 
-  const handleAuth = async ({email, firstName:fn, userId=null, token=null}) => {
+  const handleAuth = ({email, firstName:fn, userId=null, token=null}) => {
     const pfx = getUserPrefix(email);
     const savedHistory = ls.get(pfx+"_history");
     const savedCredits = ls.get(pfx+"_credits");
@@ -1463,46 +1478,8 @@ export default function App() {
     setIsLoggedIn(true);
     setShowAuthModal(false);
     ls.del("gr_guest_active");
-    // Traiter le parrainage après connexion
-    if(userId) {
-      const pendingRef = ls.get('gr_pending_ref');
-      // Lire ref_code, crédits et is_premium depuis Supabase
-      const { data: profile } = await supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', userId).single();
-      if(profile) {
-        setCredits(profile.is_premium ? 999 : profile.credits);
-        setIsPremium(profile.is_premium || false);
-        if(profile.ref_code) {
-          const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
-          ls.set(refKey, profile.ref_code);
-        }
-      } else {
-        setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
-      }
-      // Traiter le parrainage si pending
-      if(pendingRef) {
-        console.log('Traitement parrainage:', pendingRef);
-        const { data: inviter } = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
-        console.log('Inviter found:', inviter);
-        if(inviter) {
-          await supabase.from('profiles').update({
-            credits: inviter.credits + 5,
-            ref_count: inviter.ref_count + 1
-          }).eq('user_id', inviter.user_id);
-          await supabase.from('profiles').update({ referred_by: pendingRef }).eq('user_id', userId);
-          console.log('Parrainage traité avec succès !');
-        }
-        ls.del('gr_pending_ref');
-      }
-      // Charger l'historique
-      supabase.from('analyses').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(20)
-        .then(({data}) => {
-          if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)})));
-          else setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
-        });
-    } else {
-      setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
-      setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
-    }
+    setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
+    setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
     setAuthStep("app");
   };
   const handleSkip = () => {
