@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 // ── DEV MODE — mettre false pour repasser en mode normal users ──
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,900;1,9..144,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap');
@@ -463,7 +463,7 @@ function ReferralPopup({ onClose, setCredits, userEmail }) {
   });
   const [copied,setCopied] = useState(false);
   const [claimed,setClaimed] = useState(false);
-  const refLink = `https://getrizz.app/?ref=${refCode}`;
+  const refLink = `https://getyourrizz.app/?ref=${refCode}`;
   const handleCopy = async() => {
     try{ await navigator.clipboard.writeText(refLink); }catch(e){ const t=document.createElement("textarea");t.value=refLink;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t); }
     setCopied(true); setTimeout(()=>setCopied(false),2500);
@@ -526,7 +526,7 @@ function ReferralCard({ setCredits, userEmail }) {
   });
   const [refCount] = useState(()=>{ return parseInt(ls.get("gr_ref_count")||"0"); });
   const [copied,setCopied] = useState(false);
-  const refLink = `https://getrizz.app/?ref=${refCode}`;
+  const refLink = `https://getyourrizz.app/?ref=${refCode}`;
   const handleCopy = async() => {
     try{ await navigator.clipboard.writeText(refLink); }catch(e){ const t=document.createElement("textarea");t.value=refLink;document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t); }
     setCopied(true); setTimeout(()=>setCopied(false),2500);
@@ -1379,6 +1379,10 @@ export default function App() {
 
   // ── Restore Supabase session on mount ──
   useEffect(()=>{
+  // Capture ref code depuis l'URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const refFromUrl = urlParams.get('ref');
+  if(refFromUrl) { ls.set('gr_pending_ref', refFromUrl); }
   // Lire le token depuis le hash URL (retour OAuth Google)
   const hash = window.location.hash;
   if(hash && hash.includes('access_token')) {
@@ -1411,21 +1415,6 @@ export default function App() {
     setUserEmail(u.email||"");
     setSupaUserId(u.id||null);
     setIsLoggedIn(true);
-    if(u.id) {
-      supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', u.id).single()
-        .then(({data}) => {
-          if(data) {
-            setCredits(data.is_premium ? 999 : data.credits);
-            setIsPremium(data.is_premium || false);
-            if(data.ref_code) {
-              const refKey = u.email ? "gr_ref_code_"+u.email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
-              ls.set(refKey, data.ref_code);
-            }
-          }
-        });
-      supabase.from('analyses').select('*').eq('user_id', u.id).order('created_at', {ascending:false}).limit(20)
-        .then(({data}) => { if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)}))); });
-    }
     setAuthStep("app");
   } else {
     const guestActive = ls.get("gr_guest_active");
@@ -1467,7 +1456,7 @@ export default function App() {
   useEffect(()=>{ if(!DEV_MODE && userPrefix) ls.set(userPrefix+"_credits", String(credits)); },[credits, userPrefix]);
   useEffect(()=>{ if(userPrefix) ls.set(userPrefix+"_history", JSON.stringify(history)); },[history, userPrefix]);
 
-  const handleAuth = ({email, firstName:fn, userId=null, token=null}) => {
+  const handleAuth = async ({email, firstName:fn, userId=null, token=null}) => {
     const pfx = getUserPrefix(email);
     const savedHistory = ls.get(pfx+"_history");
     const savedCredits = ls.get(pfx+"_credits");
@@ -1478,8 +1467,36 @@ export default function App() {
     setIsLoggedIn(true);
     setShowAuthModal(false);
     ls.del("gr_guest_active");
-    setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
-    setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+    if(userId) {
+      const pendingRef = ls.get('gr_pending_ref');
+      const { data: profile } = await supabase.from('profiles').select('credits, is_premium, ref_code').eq('user_id', userId).single();
+      if(profile) {
+        setCredits(profile.is_premium ? 999 : profile.credits);
+        setIsPremium(profile.is_premium || false);
+        if(profile.ref_code) {
+          const refKey = email ? "gr_ref_code_"+email.replace(/[^a-z0-9]/gi,"_") : "gr_ref_code";
+          ls.set(refKey, profile.ref_code);
+        }
+      } else {
+        setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+      }
+      if(pendingRef) {
+        const { data: inviter } = await supabase.from('profiles').select('user_id, credits, ref_count').eq('ref_code', pendingRef).single();
+        if(inviter) {
+          await supabase.from('profiles').update({ credits: inviter.credits + 5, ref_count: inviter.ref_count + 1 }).eq('user_id', inviter.user_id);
+          await supabase.from('profiles').update({ credits: 6, referred_by: pendingRef }).eq('user_id', userId);
+        }
+        ls.del('gr_pending_ref');
+      }
+      supabase.from('analyses').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(20)
+        .then(({data}) => {
+          if(data && data.length > 0) setHistory(data.map(i=>({...i,ts:new Date(i.created_at)})));
+          else setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
+        });
+    } else {
+      setCredits(DEV_MODE ? 999 : savedCredits ? parseInt(savedCredits) : 3);
+      setHistory(savedHistory ? JSON.parse(savedHistory).map(i=>({...i,ts:new Date(i.ts)})) : []);
+    }
     setAuthStep("app");
   };
   const handleSkip = () => {
